@@ -142,7 +142,8 @@ function renderFreePostCard(post, index) {
     <div class="images-grid ${getImageGridClass(images.length)}">
       ${images.map((img, i) => `
         <div class="image-thumbnail" onclick="IUApp.openImageViewer('${IUApp.escapeHtml(img)}')">
-          <img src="${img}" alt="" loading="lazy">
+          <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')">
+          <div class="image-loading"></div>
         </div>
       `).join('')}
     </div>
@@ -178,7 +179,10 @@ function renderFreePostCard(post, index) {
           ${replyImages.length > 0 ? `
             <div class="comment-card-images">
               ${replyImages.map(img => `
-                <img src="${img}" onclick="IUApp.openImageViewer('${IUApp.escapeHtml(img)}')">
+                <div class="comment-image-wrapper">
+                  <img src="${img}" onclick="IUApp.openImageViewer('${IUApp.escapeHtml(img)}')" onload="this.classList.add('loaded')">
+                  <div class="comment-image-loading"></div>
+                </div>
               `).join('')}
             </div>
           ` : ''}

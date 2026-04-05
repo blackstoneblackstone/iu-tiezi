@@ -665,7 +665,8 @@ function renderReplyCard(reply, index) {
             <div class="images-grid ${getImageGridClass(fanImages.length)}">
               ${fanImages.map((img, i) => `
                 <div class="image-thumbnail" onclick="IUApp.openImageViewer('${escapeHtml(img)}', ${i}, '${escapeHtml(JSON.stringify(fanImages).replace(/'/g, "&#39;"))}')">
-                  <img src="${img}" alt="" loading="lazy">
+                  <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')">
+                  <div class="image-loading"></div>
                 </div>
               `).join('')}
             </div>
@@ -691,7 +692,8 @@ function renderReplyCard(reply, index) {
               <div class="images-grid ${getImageGridClass(iuImages.length)}">
                 ${iuImages.map((img, i) => `
                   <div class="image-thumbnail" onclick="IUApp.openImageViewer('${escapeHtml(img)}', ${i}, '${escapeHtml(JSON.stringify(iuImages).replace(/'/g, "&#39;"))}')">
-                    <img src="${img}" alt="" loading="lazy">
+                    <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')">
+                    <div class="image-loading"></div>
                   </div>
                 `).join('')}
               </div>

@@ -628,6 +628,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  min-height: 100px;
 }
 
 .image-thumbnail:hover {
@@ -643,6 +645,26 @@ body {
   height: auto;
   object-fit: contain;
   display: block;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.image-thumbnail img.loaded {
+  opacity: 1;
+}
+
+.image-thumbnail .image-loading {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(155, 126, 217, 0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.image-thumbnail img.loaded + .image-loading {
+  display: none;
 }
 
 /* ===== Pagination ===== */
@@ -1023,6 +1045,12 @@ body {
   flex-wrap: wrap;
 }
 
+.comment-card-images .comment-image-wrapper {
+  position: relative;
+  width: 88px;
+  height: 88px;
+}
+
 .comment-card-images img {
   width: 88px;
   height: 88px;
@@ -1031,11 +1059,33 @@ body {
   cursor: pointer;
   border: 1px solid var(--border-subtle);
   transition: all var(--transition-normal);
+  opacity: 0;
+}
+
+.comment-card-images img.loaded {
+  opacity: 1;
 }
 
 .comment-card-images img:hover {
   border-color: var(--primary);
   transform: scale(1.05);
+}
+
+.comment-card-images .comment-image-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(155, 126, 217, 0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.comment-card-images img.loaded + .comment-image-loading {
+  display: none;
 }
 
 /* IU Reply in Comment - Thread Container */
