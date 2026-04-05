@@ -101,6 +101,7 @@ const state = {
   selectedFan: null,
   hasImageFilter: false,
   searchQuery: '',
+  onSelectFanCallback: null,
 };
 
 // ===== Data API =====
@@ -376,7 +377,14 @@ async function renderFansWall(onSelectFan) {
       } else {
         state.selectedFan = fanName;
       }
-      if (onSelectFan) onSelectFan(state.selectedFan);
+      // Update all avatar selections
+      div.querySelectorAll('.fan-avatar').forEach(a => {
+        a.classList.toggle('selected', a.dataset.fan === state.selectedFan);
+      });
+      if (onSelectFan) {
+        state.onSelectFanCallback = onSelectFan;
+        onSelectFan(state.selectedFan);
+      }
     });
   });
 
@@ -418,6 +426,10 @@ function toggleMoreFans(btn) {
         fansWall.querySelectorAll('.fan-avatar').forEach(a => {
           a.classList.toggle('selected', a.dataset.fan === state.selectedFan);
         });
+        // Call the callback if exists
+        if (state.onSelectFanCallback) {
+          state.onSelectFanCallback(state.selectedFan);
+        }
       });
       contentDiv.appendChild(avatarDiv);
     });
