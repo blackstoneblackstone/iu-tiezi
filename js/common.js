@@ -388,12 +388,16 @@ function toggleMoreFans(btn) {
   const fansWall = btn.closest('.fans-wall');
   const contentDiv = fansWall.querySelector('#fans-wall-content');
   const moreIcon = btn.querySelector('.more-icon');
-  const isExpanded = moreIcon.style.transform === 'rotate(180deg)';
+  const moreText = btn.querySelector('.more-text');
+
+  // Check current state by text content (more reliable)
+  const currentLang = state.currentLang;
+  const collapseText = currentLang === 'zh' ? '收起' : '접기';
+  const isExpanded = moreText.textContent === collapseText;
 
   if (!isExpanded) {
     // Expand - show all fans
     const remainingFans = JSON.parse(fansWall.dataset.remainingFans || '[]');
-    const currentLang = state.currentLang;
 
     remainingFans.forEach(fan => {
       const avatarDiv = document.createElement('div');
@@ -418,9 +422,8 @@ function toggleMoreFans(btn) {
       contentDiv.appendChild(avatarDiv);
     });
 
-    btn.classList.add('expanded');
-    btn.querySelector('.more-text').textContent = currentLang === 'zh' ? '收起' : '접기';
-    btn.querySelector('.more-icon').style.transform = 'rotate(180deg)';
+    moreText.textContent = collapseText;
+    moreIcon.style.transform = 'rotate(180deg)';
   } else {
     // Collapse - show only first 20
     const allAvatars = contentDiv.querySelectorAll('.fan-avatar');
@@ -428,9 +431,8 @@ function toggleMoreFans(btn) {
       allAvatars[i].remove();
     }
 
-    btn.classList.remove('expanded');
-    btn.querySelector('.more-text').textContent = currentLang === 'zh' ? '更多' : '더보기';
-    btn.querySelector('.more-icon').style.transform = 'rotate(0deg)';
+    moreText.textContent = currentLang === 'zh' ? '更多' : '더보기';
+    moreIcon.style.transform = 'rotate(0deg)';
   }
 }
 
