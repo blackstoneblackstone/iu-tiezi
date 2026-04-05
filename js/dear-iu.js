@@ -195,7 +195,7 @@ function renderDearIUPostCard(post, index) {
     <!-- Fan Post Header -->
     <div class="post-card-header">
       <div class="post-card-author">
-        <div class="post-card-avatar" style="background: linear-gradient(135deg, #ff6b9d, #c44569); box-shadow: 0 2px 8px rgba(255,107,157,0.3);">
+        <div class="post-card-avatar">
           ${authorAvatar ? `<img src="${authorAvatar}" onload="this.classList.add('loaded')">` : (post.author_username?.[0] || '?')}
         </div>
         <div class="post-card-author-info">

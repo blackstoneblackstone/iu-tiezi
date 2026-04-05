@@ -639,11 +639,11 @@ function renderReplyCard(reply, index) {
     <!-- Header -->
     <div class="reply-card-header">
       ${fanAvatarSrc ? `
-        <img src="${fanAvatarSrc}" alt="${escapeHtml(fanDisplayName)}" class="reply-card-avatar" onload="this.classList.add('loaded')">
+        <div class="reply-card-avatar-wrapper">
+          <img src="${fanAvatarSrc}" alt="${escapeHtml(fanDisplayName)}" class="reply-card-avatar" onload="this.classList.add('loaded')">
+        </div>
       ` : `
-        <div class="reply-card-avatar-fallback" style="background: ${isFromIU
-          ? 'linear-gradient(135deg, #9B7ED9, #7B68B2)'
-          : 'linear-gradient(135deg, var(--primary-dark), var(--primary))'}">
+        <div class="reply-card-avatar-fallback">
           ${isFromIU ? '💌' : fanInitial}
         </div>
       `}
