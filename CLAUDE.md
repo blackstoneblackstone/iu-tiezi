@@ -10,7 +10,7 @@ IU Community (IU 回帖合集) - A bilingual (Chinese/Korean) static website dis
 
 ### Data Export
 ```bash
-python3 export_data.py
+python3 scripts/export_data.py
 ```
 Runs the export script to convert the SQLite database into paginated JSON files for frontend consumption. Requires Python 3 with standard library (sqlite3, json, os, datetime).
 
@@ -23,9 +23,8 @@ python3 -m http.server 8000
 ## Architecture
 
 ### Data Flow
-1. **Source**: SQLite database (`data/iu_data.db`) containing users, posts, fan_comments, iu_replies tables
-2. **Export**: `export_data.py` reads database and generates paginated JSON files in `data/` directory
-3. **Frontend**: JavaScript fetches JSON files and renders content dynamically
+1. **Export**: `scripts/export_data.py` reads database and generates paginated JSON files in `data/` directory
+2. **Frontend**: JavaScript fetches JSON files and renders content dynamically
 
 ### Frontend Structure
 - **HTML pages**: 4 entry points - `index.html` (all replies), `from-iu.html`, `dear-iu.html`, `free.html`
@@ -39,12 +38,10 @@ python3 -m http.server 8000
 - `from-iu/page-{n}.json`, `dear-iu/page-{n}.json`, `free/page-{n}.json` - board-specific posts
 - `search-index.json` - searchable content index
 
-### Key Database Tables
-- `users` - community members (with `is_iu` flag for IU)
-- `posts` - original posts
-- `fan_comments` - fan comments on posts
-- `iu_replies` - IU's replies (linked to posts or fan_comments)
-
 ## Image Handling
 
 Images use a remote domain `https://dearimage.iu101.org`. The `export_data.py` script prefixes relative paths with this domain via `add_domain_to_url()` function. Frontend prioritizes `local_image_paths` over `image_urls` when both exist.
+
+## Language Support
+
+The site supports Chinese (zh) and Korean (ko). Language preference is stored in localStorage. The `translations` object in `common.js` contains all UI strings. Content fields have both `_ko` and `_zh` suffixes (e.g., `content_ko`, `content_zh`).
