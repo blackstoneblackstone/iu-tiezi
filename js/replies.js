@@ -11,6 +11,9 @@ const repliesState = {
   isLoading: false,
   searchMode: false,
   searchPages: [],
+  fanFilterMode: false,
+  fanFilterPages: [],
+  fanFilterIds: [],
 };
 
 // Initialize page
@@ -34,10 +37,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Render fans wall
   const fansContainer = document.getElementById('fans-container');
   if (fansContainer) {
-    const fansWall = await IUApp.renderFansWall((fanName) => {
+    const fansWall = await IUApp.renderFansWall(async (fanName) => {
       IUApp.state.selectedFan = fanName;
       repliesState.currentPage = 1;
-      loadReplies();
+
+      if (fanName) {
+        // Enter fan filter mode
+        const result = await IUApp.DataAPI.filterByFan(fanName);
+        repliesState.fanFilterMode = true;
+        repliesState.fanFilterPages = result.pages;
+        repliesState.fanFilterIds = result.ids;
+        repliesState.searchMode = false;
+        repliesState.searchQuery = '';
+      } else {
+        // Exit fan filter mode
+        repliesState.fanFilterMode = false;
+        repliesState.fanFilterPages = [];
+        repliesState.fanFilterIds = [];
+      }
+
+      await loadReplies();
     });
     fansContainer.appendChild(fansWall);
   }
@@ -72,6 +91,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (fanParam) {
     IUApp.state.selectedFan = fanParam;
     IUApp.state.searchQuery = '';
+
+    // Enter fan filter mode
+    const result = await IUApp.DataAPI.filterByFan(fanParam);
+    repliesState.fanFilterMode = true;
+    repliesState.fanFilterPages = result.pages;
+    repliesState.fanFilterIds = result.ids;
+    repliesState.currentPage = 1;
+
     await loadReplies();
   }
 });
@@ -95,6 +122,9 @@ async function loadReplies() {
     if (repliesState.searchMode && IUApp.state.searchQuery) {
       // Load from search results
       data = await loadSearchResults();
+    } else if (repliesState.fanFilterMode && IUApp.state.selectedFan) {
+      // Load from fan filter results
+      data = await loadFanFilterResults();
     } else {
       // Load normal page
       const result = await IUApp.DataAPI.getReplies(repliesState.currentPage);
@@ -104,11 +134,11 @@ async function loadReplies() {
 
     repliesState.replies = data;
 
-    // Apply client-side filters
+    // Apply client-side filters (only for normal mode)
     let filtered = [...repliesState.replies];
 
-    // Filter by fan
-    if (IUApp.state.selectedFan) {
+    // Filter by fan (only in normal mode, not in fan filter mode)
+    if (IUApp.state.selectedFan && !repliesState.fanFilterMode) {
       filtered = filtered.filter(r => r.fan_username === IUApp.state.selectedFan);
     }
 
@@ -140,8 +170,8 @@ async function loadReplies() {
       contentContainer.appendChild(grid);
     }
 
-    // Render pagination (only if not in search mode)
-    if (paginationContainer && !repliesState.searchMode) {
+    // Render pagination (only if not in search/fan-filter mode)
+    if (paginationContainer && !repliesState.searchMode && !repliesState.fanFilterMode) {
       paginationContainer.innerHTML = '';
       paginationContainer.appendChild(IUApp.renderPagination(
         repliesState.currentPage,
@@ -176,8 +206,12 @@ async function handleSearch(query) {
     return;
   }
 
-  // Enter search mode
+  // Enter search mode (exit fan filter mode)
   repliesState.searchMode = true;
+  repliesState.fanFilterMode = false;
+  repliesState.fanFilterPages = [];
+  repliesState.fanFilterIds = [];
+  IUApp.state.selectedFan = null;
 
   // Get matching pages from search index
   const matchingPages = await IUApp.DataAPI.searchReplies(query);
@@ -209,6 +243,39 @@ async function loadSearchResults() {
   }
 
   // Simple pagination for search results
+  const pageSize = 50;
+  const start = (repliesState.currentPage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageData = allResults.slice(start, end);
+
+  repliesState.totalPages = Math.ceil(allResults.length / pageSize);
+
+  return pageData;
+}
+
+// Load fan filter results
+async function loadFanFilterResults() {
+  if (repliesState.fanFilterPages.length === 0) {
+    return [];
+  }
+
+  // Load all matching pages
+  const allResults = [];
+  const fanName = IUApp.state.selectedFan;
+
+  for (const pageNum of repliesState.fanFilterPages) {
+    const result = await IUApp.DataAPI.getReplies(pageNum);
+    if (result?.data) {
+      // Filter matching items
+      const matching = result.data.filter(r => r.fan_username === fanName);
+      allResults.push(...matching);
+    }
+  }
+
+  // Sort by replied_at descending
+  allResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+
+  // Simple pagination for fan filter results
   const pageSize = 50;
   const start = (repliesState.currentPage - 1) * pageSize;
   const end = start + pageSize;

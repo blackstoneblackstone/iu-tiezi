@@ -177,6 +177,26 @@ const DataAPI = {
     return Array.from(matchingPages);
   },
 
+  async filterByFan(fanName) {
+    const indexData = await this.loadJson('data/search-index.json');
+    if (!indexData || !indexData.index) return { pages: [], ids: [] };
+
+    const matchingPages = new Set();
+    const matchingIds = new Set();
+
+    indexData.index.forEach(item => {
+      if (item.fan_username === fanName) {
+        matchingPages.add(item.page);
+        matchingIds.add(item.id);
+      }
+    });
+
+    return {
+      pages: Array.from(matchingPages),
+      ids: Array.from(matchingIds)
+    };
+  },
+
   clearCache() {
     this.cache.clear();
   }
