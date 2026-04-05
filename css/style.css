@@ -737,7 +737,6 @@ body {
 
 .footer-qr {
   width: 140px;
-  height: 140px;
   border-radius: 14px;
   border: 2px solid var(--border-subtle);
   transition: border-color var(--transition-normal);
