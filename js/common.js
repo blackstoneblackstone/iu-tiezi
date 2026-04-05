@@ -387,7 +387,8 @@ async function renderFansWall(onSelectFan) {
 function toggleMoreFans(btn) {
   const fansWall = btn.closest('.fans-wall');
   const contentDiv = fansWall.querySelector('#fans-wall-content');
-  const isExpanded = btn.classList.contains('expanded');
+  const moreIcon = btn.querySelector('.more-icon');
+  const isExpanded = moreIcon.style.transform === 'rotate(180deg)';
 
   if (!isExpanded) {
     // Expand - show all fans
