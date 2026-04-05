@@ -13,7 +13,7 @@ const translations = {
     // Stats
     totalReplies: '总回帖数',
     totalFans: 'Uaena',
-    lastActive: '最近活跃',
+    lastActive: '最后更新时间',
 
     // Controls
     searchPlaceholder: '搜索昵称、内容...',
@@ -55,7 +55,7 @@ const translations = {
     // Stats
     totalReplies: '총 댓글 수',
     totalFans: 'Uaena',
-    lastActive: '최근 활동',
+    lastActive: '마지막 업데이트',
 
     // Controls
     searchPlaceholder: '닉네임, 내용 검색...',
