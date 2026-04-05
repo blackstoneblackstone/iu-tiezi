@@ -236,6 +236,7 @@ body {
   border: 2px solid var(--border-subtle);
   transition: all var(--transition-normal);
   position: relative;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
 }
 
 .fan-avatar:hover {
@@ -253,6 +254,12 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.fan-avatar img.loaded {
+  opacity: 1;
 }
 
 .fan-avatar .reply-count {
@@ -447,6 +454,16 @@ body {
   object-fit: cover;
   border: 2px solid rgba(155, 126, 217, 0.25);
   transition: border-color var(--transition-normal);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
+.reply-card-avatar {
+  opacity: 0;
+}
+
+.reply-card-avatar.loaded {
+  opacity: 1;
+  transition: opacity var(--transition-normal);
 }
 
 .reply-card:hover .reply-card-avatar,
@@ -810,12 +827,35 @@ body {
   position: relative;
 }
 
+.modal-image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .modal-content img {
   max-width: 100%;
   max-height: 92vh;
   object-fit: contain;
   border-radius: 12px;
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.modal-content img.loaded {
+  opacity: 1;
+}
+
+.modal-image-loading {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(155, 126, 217, 0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .modal-close {
@@ -889,6 +929,12 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.post-card-avatar img.loaded {
+  opacity: 1;
 }
 
 .post-card-author-info {
@@ -1018,6 +1064,12 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.comment-card-avatar img.loaded {
+  opacity: 1;
 }
 
 .comment-card-author {
@@ -1135,6 +1187,12 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.iu-comment-reply-avatar img.loaded {
+  opacity: 1;
 }
 
 .iu-comment-reply-name {

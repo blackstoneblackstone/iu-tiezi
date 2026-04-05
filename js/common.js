@@ -387,7 +387,7 @@ async function renderFansWall(onSelectFan) {
         <div class="fan-avatar ${state.selectedFan === fan.username ? 'selected' : ''}"
              data-fan="${escapeHtml(fan.username)}"
              title="${escapeHtml(fan.username)} (${fan.reply_count})">
-          <img src="${fan.avatar_url}" alt="${escapeHtml(fan.username)}" loading="lazy">
+          <img src="${fan.avatar_url}" alt="${escapeHtml(fan.username)}" loading="lazy" onload="this.classList.add('loaded')">
           <span class="reply-count">${fan.reply_count}</span>
         </div>
       `).join('')}
@@ -453,7 +453,7 @@ function toggleMoreFans(btn) {
       avatarDiv.dataset.fan = fan.username;
       avatarDiv.title = `${fan.username} (${fan.reply_count})`;
       avatarDiv.innerHTML = `
-        <img src="${fan.avatar_url}" alt="${fan.username}" loading="lazy">
+        <img src="${fan.avatar_url}" alt="${fan.username}" loading="lazy" onload="this.classList.add('loaded')">
         <span class="reply-count">${fan.reply_count}</span>
       `;
       avatarDiv.addEventListener('click', () => {
@@ -641,7 +641,7 @@ function renderReplyCard(reply, index) {
     <!-- Header -->
     <div class="reply-card-header">
       ${fanAvatarSrc ? `
-        <img src="${fanAvatarSrc}" alt="${escapeHtml(fanDisplayName)}" class="reply-card-avatar">
+        <img src="${fanAvatarSrc}" alt="${escapeHtml(fanDisplayName)}" class="reply-card-avatar" onload="this.classList.add('loaded')">
       ` : `
         <div class="reply-card-avatar-fallback" style="background: ${isFromIU
           ? 'linear-gradient(135deg, #9B7ED9, #7B68B2)'
@@ -752,7 +752,10 @@ function initImageViewer() {
     modal.innerHTML = `
       <div class="modal-content">
         <button class="modal-close" onclick="closeImageViewer()">&times;</button>
-        <img src="" alt="" id="modalImage">
+        <div class="modal-image-container">
+          <img src="" alt="" id="modalImage">
+          <div class="modal-image-loading" id="modalImageLoading"></div>
+        </div>
       </div>
     `;
     document.body.appendChild(modal);
@@ -760,14 +763,27 @@ function initImageViewer() {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeImageViewer();
     });
+
+    // Add load handler for modal image
+    const modalImg = document.getElementById('modalImage');
+    if (modalImg) {
+      modalImg.onload = function() {
+        this.classList.add('loaded');
+        const loading = document.getElementById('modalImageLoading');
+        if (loading) loading.style.display = 'none';
+      };
+    }
   }
 }
 
 function openImageViewer(src) {
   const modal = document.getElementById('imageModal');
   const img = document.getElementById('modalImage');
+  const loading = document.getElementById('modalImageLoading');
   if (modal && img) {
     img.src = src;
+    img.classList.remove('loaded');
+    if (loading) loading.style.display = 'block';
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
   }

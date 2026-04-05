@@ -192,7 +192,7 @@ function renderFromIUPostCard(post, index) {
             <div class="iu-comment-reply">
               <div class="iu-comment-reply-header">
                 <div class="iu-comment-reply-avatar">
-                  <img src="${fromIUState.iuAvatar}" alt="IU">
+                  <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
                 </div>
                 <div>
                   <div class="iu-comment-reply-name">
@@ -224,7 +224,7 @@ function renderFromIUPostCard(post, index) {
           <div class="comment-card-fan">
             <div class="comment-card-header">
               <div class="comment-card-avatar">
-                ${comment.fan_avatar ? `<img src="${comment.fan_avatar}">` : (comment.fan_username?.[0] || '?')}
+                ${comment.fan_avatar ? `<img src="${comment.fan_avatar}" onload="this.classList.add('loaded')">` : (comment.fan_username?.[0] || '?')}
               </div>
               <div>
                 <div class="comment-card-author">${IUApp.escapeHtml(comment.fan_username || '')}</div>
@@ -254,7 +254,7 @@ function renderFromIUPostCard(post, index) {
     <div class="post-card-header">
       <div class="post-card-author">
         <div class="post-card-avatar">
-          <img src="${fromIUState.iuAvatar}" alt="IU">
+          <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
         </div>
         <div class="post-card-author-info">
           <div class="post-card-author-name">

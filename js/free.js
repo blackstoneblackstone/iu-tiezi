@@ -164,7 +164,7 @@ function renderFreePostCard(post, index) {
         <div class="iu-comment-reply">
           <div class="iu-comment-reply-header">
             <div class="iu-comment-reply-avatar">
-              <img src="${freeState.iuAvatar}" alt="IU">
+              <img src="${freeState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
             </div>
             <div>
               <div class="iu-comment-reply-name">
@@ -196,7 +196,7 @@ function renderFreePostCard(post, index) {
     <div class="post-card-header">
       <div class="post-card-author">
         <div class="post-card-avatar">
-          ${authorAvatar ? `<img src="${authorAvatar}">` : (post.author_username?.[0] || '?')}
+          ${authorAvatar ? `<img src="${authorAvatar}" onload="this.classList.add('loaded')">` : (post.author_username?.[0] || '?')}
         </div>
         <div class="post-card-author-info">
           <div class="post-card-author-name" style="color: var(--text-primary);">
