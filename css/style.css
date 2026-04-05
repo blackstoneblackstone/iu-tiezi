@@ -77,20 +77,12 @@ body {
 
 /* ===== Masonry Layout ===== */
 .masonry-grid {
-  column-count: 1;
+  column-count: 2;
   column-gap: 24px;
 }
 
-@media (min-width: 768px) {
-  .masonry-grid { column-count: 2; }
-}
-
-@media (min-width: 1200px) {
-  .masonry-grid { column-count: 3; }
-}
-
-@media (min-width: 1600px) {
-  .masonry-grid { column-count: 4; }
+@media (max-width: 768px) {
+  .masonry-grid { column-count: 1; }
 }
 
 .masonry-item {
