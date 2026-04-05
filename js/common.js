@@ -322,11 +322,9 @@ function renderHeader() {
       <a href="index.html" class="logo">
         <img src="${IU_AVATAR}" alt="IU">
         <div>
-          <div style="font-size: 1.5rem; font-weight: 600; background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-            IU 回帖合集
-          </div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.15em;">
-            아이유 커뮤니티 / IU 社区
+          <div class="logo-text">IU 回帖合集</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.1em;">
+            아이유 커뮤니티 · IU 社区
           </div>
         </div>
       </a>
