@@ -197,6 +197,26 @@ const DataAPI = {
     };
   },
 
+  async filterByImage() {
+    const indexData = await this.loadJson('data/search-index.json');
+    if (!indexData || !indexData.index) return { pages: [], ids: [] };
+
+    const matchingPages = new Set();
+    const matchingIds = new Set();
+
+    indexData.index.forEach(item => {
+      if ((item.image_count > 0) || (item.fan_image_count > 0)) {
+        matchingPages.add(item.page);
+        matchingIds.add(item.id);
+      }
+    });
+
+    return {
+      pages: Array.from(matchingPages),
+      ids: Array.from(matchingIds)
+    };
+  },
+
   clearCache() {
     this.cache.clear();
   }

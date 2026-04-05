@@ -398,8 +398,10 @@ def export_search_index():
             ir.content_ko,
             ir.content_zh,
             ir.reply_to_username,
+            ir.image_count,
             fc.content_ko as fan_comment_ko,
             fc.content_zh as fan_comment_zh,
+            fc.image_count as fan_image_count,
             ((ir.id - 1) / 50) + 1 as page
         FROM iu_replies ir
         LEFT JOIN fan_comments fc ON ir.reply_to_fan_comment_id = fc.id
@@ -413,6 +415,8 @@ def export_search_index():
             "content_ko": row['content_ko'],
             "content_zh": row['content_zh'],
             "fan_username": row['reply_to_username'],
+            "image_count": row['image_count'] or 0,
+            "fan_image_count": row['fan_image_count'] or 0,
             "fan_comment_ko": row['fan_comment_ko'],
             "fan_comment_zh": row['fan_comment_zh'],
             "page": row['page']

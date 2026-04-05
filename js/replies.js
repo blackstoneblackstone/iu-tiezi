@@ -14,6 +14,9 @@ const repliesState = {
   fanFilterMode: false,
   fanFilterPages: [],
   fanFilterIds: [],
+  imageFilterMode: false,
+  imageFilterPages: [],
+  imageFilterIds: [],
 };
 
 // Initialize page
@@ -42,13 +45,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       repliesState.currentPage = 1;
 
       if (fanName) {
-        // Enter fan filter mode
+        // Enter fan filter mode (exit other modes)
         const result = await IUApp.DataAPI.filterByFan(fanName);
         repliesState.fanFilterMode = true;
         repliesState.fanFilterPages = result.pages;
         repliesState.fanFilterIds = result.ids;
         repliesState.searchMode = false;
         repliesState.searchQuery = '';
+        repliesState.imageFilterMode = false;
+        repliesState.imageFilterPages = [];
+        repliesState.imageFilterIds = [];
+        IUApp.state.hasImageFilter = false;
       } else {
         // Exit fan filter mode
         repliesState.fanFilterMode = false;
@@ -125,6 +132,9 @@ async function loadReplies() {
     } else if (repliesState.fanFilterMode && IUApp.state.selectedFan) {
       // Load from fan filter results
       data = await loadFanFilterResults();
+    } else if (repliesState.imageFilterMode && IUApp.state.hasImageFilter) {
+      // Load from image filter results
+      data = await loadImageFilterResults();
     } else {
       // Load normal page
       const result = await IUApp.DataAPI.getReplies(repliesState.currentPage);
@@ -142,8 +152,8 @@ async function loadReplies() {
       filtered = filtered.filter(r => r.fan_username === IUApp.state.selectedFan);
     }
 
-    // Filter by has image
-    if (IUApp.state.hasImageFilter) {
+    // Filter by has image (only in normal mode, not in image filter mode)
+    if (IUApp.state.hasImageFilter && !repliesState.imageFilterMode) {
       filtered = filtered.filter(r =>
         (r.image_count > 0) || (r.fan_image_count > 0)
       );
@@ -170,8 +180,8 @@ async function loadReplies() {
       contentContainer.appendChild(grid);
     }
 
-    // Render pagination (only if not in search/fan-filter mode)
-    if (paginationContainer && !repliesState.searchMode && !repliesState.fanFilterMode) {
+    // Render pagination (only if not in search/fan-filter/image-filter mode)
+    if (paginationContainer && !repliesState.searchMode && !repliesState.fanFilterMode && !repliesState.imageFilterMode) {
       paginationContainer.innerHTML = '';
       paginationContainer.appendChild(IUApp.renderPagination(
         repliesState.currentPage,
@@ -206,12 +216,16 @@ async function handleSearch(query) {
     return;
   }
 
-  // Enter search mode (exit fan filter mode)
+  // Enter search mode (exit fan filter and image filter modes)
   repliesState.searchMode = true;
   repliesState.fanFilterMode = false;
   repliesState.fanFilterPages = [];
   repliesState.fanFilterIds = [];
+  repliesState.imageFilterMode = false;
+  repliesState.imageFilterPages = [];
+  repliesState.imageFilterIds = [];
   IUApp.state.selectedFan = null;
+  IUApp.state.hasImageFilter = false;
 
   // Get matching pages from search index
   const matchingPages = await IUApp.DataAPI.searchReplies(query);
@@ -286,9 +300,63 @@ async function loadFanFilterResults() {
   return pageData;
 }
 
+// Load image filter results
+async function loadImageFilterResults() {
+  if (repliesState.imageFilterPages.length === 0) {
+    return [];
+  }
+
+  // Load all matching pages
+  const allResults = [];
+
+  for (const pageNum of repliesState.imageFilterPages) {
+    const result = await IUApp.DataAPI.getReplies(pageNum);
+    if (result?.data) {
+      // Filter matching items
+      const matching = result.data.filter(r =>
+        (r.image_count > 0) || (r.fan_image_count > 0)
+      );
+      allResults.push(...matching);
+    }
+  }
+
+  // Sort by replied_at descending
+  allResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+
+  // Simple pagination for image filter results
+  const pageSize = 50;
+  const start = (repliesState.currentPage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageData = allResults.slice(start, end);
+
+  repliesState.totalPages = Math.ceil(allResults.length / pageSize);
+
+  return pageData;
+}
+
 // Handle image filter
 async function handleImageFilter(hasImage) {
   IUApp.state.hasImageFilter = hasImage;
   repliesState.currentPage = 1;
+
+  if (hasImage) {
+    // Enter image filter mode (exit other modes)
+    const result = await IUApp.DataAPI.filterByImage();
+    repliesState.imageFilterMode = true;
+    repliesState.imageFilterPages = result.pages;
+    repliesState.imageFilterIds = result.ids;
+    repliesState.searchMode = false;
+    repliesState.searchQuery = '';
+    repliesState.fanFilterMode = false;
+    repliesState.fanFilterPages = [];
+    repliesState.fanFilterIds = [];
+    IUApp.state.selectedFan = null;
+  } else {
+    // Exit image filter mode
+    repliesState.imageFilterMode = false;
+    repliesState.imageFilterPages = [];
+    repliesState.imageFilterIds = [];
+  }
+
   await loadReplies();
 }
