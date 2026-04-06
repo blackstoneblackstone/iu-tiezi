@@ -264,7 +264,7 @@ function renderDearIUPostCard(post, index) {
         <div class="iu-comment-reply">
           <div class="iu-comment-reply-header">
             <div class="iu-comment-reply-avatar">
-              <img src="${dearIUState.iuAvatar}" alt="IU">
+              <img src="${dearIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
             </div>
             <div>
               <div class="iu-comment-reply-name">

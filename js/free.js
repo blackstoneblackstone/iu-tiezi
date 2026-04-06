@@ -263,7 +263,7 @@ function renderFreePostCard(post, index) {
         <div class="iu-comment-reply">
           <div class="iu-comment-reply-header">
             <div class="iu-comment-reply-avatar">
-              <img src="${freeState.iuAvatar}" alt="IU">
+              <img src="${freeState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
             </div>
             <div>
               <div class="iu-comment-reply-name">

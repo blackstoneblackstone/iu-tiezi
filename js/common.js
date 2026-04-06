@@ -675,7 +675,7 @@ function renderReplyCard(reply, index) {
       <!-- IU Reply -->
       <div class="iu-reply-box">
         <div class="iu-reply-avatar-wrapper">
-          <img src="${IU_AVATAR}" alt="IU" class="iu-reply-avatar">
+          <img src="${IU_AVATAR}" alt="IU" class="iu-reply-avatar" onload="this.classList.add('loaded')">
         </div>
         <div class="iu-reply-content-wrapper">
           <div class="iu-reply-bubble">

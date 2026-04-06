@@ -253,7 +253,7 @@ function renderFromIUPostCard(post, index) {
   headerDiv.innerHTML = `
     <div class="post-card-author">
       <div class="post-card-avatar">
-        <img src="${fromIUState.iuAvatar}" alt="IU">
+        <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
       </div>
       <div class="post-card-author-info">
         <div class="post-card-author-name">
@@ -355,7 +355,7 @@ function renderFromIUPostCard(post, index) {
             <div class="iu-comment-reply">
               <div class="iu-comment-reply-header">
                 <div class="iu-comment-reply-avatar">
-                  <img src="${fromIUState.iuAvatar}" alt="IU">
+                  <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
                 </div>
                 <div>
                   <div class="iu-comment-reply-name">
