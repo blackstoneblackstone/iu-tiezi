@@ -1,5 +1,5 @@
 /**
- * Replies Page Logic
+ * Replies Page Logic - Infinite Scroll Version
  */
 
 // State for replies page
@@ -9,14 +9,19 @@ const repliesState = {
   replies: [],
   filteredReplies: [],
   isLoading: false,
+  isAppending: false,
   searchMode: false,
   searchPages: [],
+  searchResults: [],
   fanFilterMode: false,
   fanFilterPages: [],
+  fanFilterResults: [],
   fanFilterIds: [],
   imageFilterMode: false,
   imageFilterPages: [],
+  imageFilterResults: [],
   imageFilterIds: [],
+  hasMore: true,
 };
 
 // Initialize page
@@ -50,19 +55,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         repliesState.fanFilterMode = true;
         repliesState.fanFilterPages = result.pages;
         repliesState.fanFilterIds = result.ids;
+        repliesState.fanFilterResults = [];
         repliesState.searchMode = false;
         repliesState.searchQuery = '';
         repliesState.imageFilterMode = false;
         repliesState.imageFilterPages = [];
+        repliesState.imageFilterResults = [];
         repliesState.imageFilterIds = [];
         IUApp.state.hasImageFilter = false;
+        repliesState.hasMore = result.pages.length > 0;
       } else {
         // Exit fan filter mode
         repliesState.fanFilterMode = false;
         repliesState.fanFilterPages = [];
+        repliesState.fanFilterResults = [];
         repliesState.fanFilterIds = [];
+        // Reset to page 1 and check if there are more pages
+        const stats = await IUApp.DataAPI.getStats();
+        repliesState.totalPages = stats?.totalPages || 1;
+        repliesState.hasMore = repliesState.currentPage < repliesState.totalPages;
       }
 
+      // Clear content and reload
+      clearContent();
       await loadReplies();
     });
     fansContainer.appendChild(fansWall);
@@ -92,6 +107,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load initial data
   await loadReplies();
 
+  // Setup infinite scroll
+  setupInfiniteScroll();
+
   // Check URL params for fan filter
   const urlParams = new URLSearchParams(window.location.search);
   const fanParam = urlParams.get('fan');
@@ -104,73 +122,197 @@ document.addEventListener('DOMContentLoaded', async () => {
     repliesState.fanFilterMode = true;
     repliesState.fanFilterPages = result.pages;
     repliesState.fanFilterIds = result.ids;
+    repliesState.fanFilterResults = [];
     repliesState.currentPage = 1;
+    repliesState.hasMore = result.pages.length > 0;
 
+    clearContent();
     await loadReplies();
   }
 });
 
+// Clear content container
+function clearContent() {
+  const contentContainer = document.getElementById('content-container');
+  if (contentContainer) {
+    contentContainer.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'masonry-grid';
+    grid.id = 'replies-grid';
+    contentContainer.appendChild(grid);
+  }
+}
+
+// Setup infinite scroll
+function setupInfiniteScroll() {
+  const paginationContainer = document.getElementById('pagination-container');
+  if (paginationContainer) {
+    paginationContainer.innerHTML = '';
+    // Create infinite scroll sentinel
+    const sentinel = document.createElement('div');
+    sentinel.id = 'infinite-sentinel';
+    paginationContainer.appendChild(sentinel);
+  }
+
+  // Intersection Observer for infinite scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && repliesState.hasMore && !repliesState.isLoading && !repliesState.isAppending) {
+        loadMoreReplies();
+      }
+    });
+  }, {
+    rootMargin: '200px',
+    threshold: 0.1
+  });
+
+  const sentinel = document.getElementById('infinite-sentinel');
+  if (sentinel) {
+    observer.observe(sentinel);
+  }
+}
+
+// Load more replies (for infinite scroll)
+async function loadMoreReplies() {
+  if (!repliesState.hasMore || repliesState.isAppending) return;
+
+  repliesState.isAppending = true;
+  showInfiniteLoading();
+
+  try {
+    repliesState.currentPage++;
+    let newData = [];
+
+    if (repliesState.searchMode && IUApp.state.searchQuery) {
+      newData = await loadSearchResultsPage();
+    } else if (repliesState.fanFilterMode && IUApp.state.selectedFan) {
+      newData = await loadFanFilterResultsPage();
+    } else if (repliesState.imageFilterMode && IUApp.state.hasImageFilter) {
+      newData = await loadImageFilterResultsPage();
+    } else {
+      const result = await IUApp.DataAPI.getReplies(repliesState.currentPage);
+      newData = result?.data || [];
+      repliesState.hasMore = repliesState.currentPage < repliesState.totalPages;
+    }
+
+    if (newData.length > 0) {
+      appendReplies(newData);
+    } else {
+      repliesState.hasMore = false;
+    }
+
+  } catch (error) {
+    console.error('Failed to load more replies:', error);
+  } finally {
+    repliesState.isAppending = false;
+    hideInfiniteLoading();
+    if (!repliesState.hasMore) {
+      showInfiniteEnd();
+    }
+  }
+}
+
+// Show infinite scroll loading indicator
+function showInfiniteLoading() {
+  let loader = document.getElementById('infinite-loading');
+  if (!loader) {
+    const paginationContainer = document.getElementById('pagination-container');
+    if (paginationContainer) {
+      loader = document.createElement('div');
+      loader.id = 'infinite-loading';
+      loader.className = 'infinite-loading';
+      loader.innerHTML = '<div class="infinite-spinner"></div>';
+      paginationContainer.insertBefore(loader, paginationContainer.firstChild);
+    }
+  }
+}
+
+// Hide infinite scroll loading indicator
+function hideInfiniteLoading() {
+  const loader = document.getElementById('infinite-loading');
+  if (loader) {
+    loader.remove();
+  }
+}
+
+// Show end of content message
+function showInfiniteEnd() {
+  let endMsg = document.getElementById('infinite-end');
+  if (!endMsg) {
+    const paginationContainer = document.getElementById('pagination-container');
+    if (paginationContainer) {
+      endMsg = document.createElement('div');
+      endMsg.id = 'infinite-end';
+      endMsg.className = 'infinite-end';
+      endMsg.innerHTML = IUApp.state.currentLang === 'zh'
+        ? '— 已加载全部内容 —'
+        : '— 모든 내용을 로드했습니다 —';
+      paginationContainer.appendChild(endMsg);
+    }
+  }
+}
+
+// Append new replies to existing grid
+function appendReplies(newReplies) {
+  const grid = document.getElementById('replies-grid');
+  if (!grid) return;
+
+  const startIndex = repliesState.replies.length;
+  newReplies.forEach((reply, i) => {
+    const item = document.createElement('div');
+    item.className = 'masonry-item';
+    item.appendChild(IUApp.renderReplyCard(reply, startIndex + i));
+    grid.appendChild(item);
+  });
+
+  repliesState.replies.push(...newReplies);
+}
+
 // Load replies data
 async function loadReplies() {
   const contentContainer = document.getElementById('content-container');
-  const paginationContainer = document.getElementById('pagination-container');
-
   if (!contentContainer) return;
 
-  // Show loading
+  // Show skeleton loading
   repliesState.isLoading = true;
   contentContainer.innerHTML = '';
-  contentContainer.appendChild(IUApp.renderLoading());
+  contentContainer.appendChild(IUApp.renderSkeletonCards(6));
 
   try {
     let data;
 
     // If in search mode
     if (repliesState.searchMode && IUApp.state.searchQuery) {
-      // Load from search results
-      data = await loadSearchResults();
+      // Load all search results
+      data = await loadAllSearchResults();
     } else if (repliesState.fanFilterMode && IUApp.state.selectedFan) {
-      // Load from fan filter results
-      data = await loadFanFilterResults();
+      // Load all fan filter results
+      data = await loadAllFanFilterResults();
     } else if (repliesState.imageFilterMode && IUApp.state.hasImageFilter) {
-      // Load from image filter results
-      data = await loadImageFilterResults();
+      // Load all image filter results
+      data = await loadAllImageFilterResults();
     } else {
       // Load normal page
       const result = await IUApp.DataAPI.getReplies(repliesState.currentPage);
       data = result?.data || [];
       repliesState.totalPages = result?.totalPages || 1;
+      repliesState.hasMore = repliesState.currentPage < repliesState.totalPages;
     }
 
     repliesState.replies = data;
 
-    // Apply client-side filters (only for normal mode)
-    let filtered = [...repliesState.replies];
-
-    // Filter by fan (only in normal mode, not in fan filter mode)
-    if (IUApp.state.selectedFan && !repliesState.fanFilterMode) {
-      filtered = filtered.filter(r => r.fan_username === IUApp.state.selectedFan);
-    }
-
-    // Filter by has image (only in normal mode, not in image filter mode)
-    if (IUApp.state.hasImageFilter && !repliesState.imageFilterMode) {
-      filtered = filtered.filter(r =>
-        (r.image_count > 0) || (r.fan_image_count > 0)
-      );
-    }
-
-    repliesState.filteredReplies = filtered;
-
-    // Render content
+    // Render content with masonry grid
     contentContainer.innerHTML = '';
 
-    if (filtered.length === 0) {
+    if (data.length === 0) {
       contentContainer.appendChild(IUApp.renderEmpty());
+      repliesState.hasMore = false;
     } else {
       const grid = document.createElement('div');
       grid.className = 'masonry-grid';
+      grid.id = 'replies-grid';
 
-      filtered.forEach((reply, index) => {
+      data.forEach((reply, index) => {
         const item = document.createElement('div');
         item.className = 'masonry-item';
         item.appendChild(IUApp.renderReplyCard(reply, index));
@@ -178,22 +320,6 @@ async function loadReplies() {
       });
 
       contentContainer.appendChild(grid);
-    }
-
-    // Render pagination (only if not in search/fan-filter/image-filter mode)
-    if (paginationContainer && !repliesState.searchMode && !repliesState.fanFilterMode && !repliesState.imageFilterMode) {
-      paginationContainer.innerHTML = '';
-      paginationContainer.appendChild(IUApp.renderPagination(
-        repliesState.currentPage,
-        repliesState.totalPages,
-        (page) => {
-          repliesState.currentPage = page;
-          loadReplies();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      ));
-    } else if (paginationContainer) {
-      paginationContainer.innerHTML = '';
     }
 
   } catch (error) {
@@ -212,6 +338,12 @@ async function handleSearch(query) {
   if (!query.trim()) {
     repliesState.searchMode = false;
     repliesState.searchPages = [];
+    repliesState.searchResults = [];
+    // Reset pagination info
+    const stats = await IUApp.DataAPI.getStats();
+    repliesState.totalPages = stats?.totalPages || 1;
+    repliesState.hasMore = repliesState.currentPage < repliesState.totalPages;
+    clearContent();
     await loadReplies();
     return;
   }
@@ -220,9 +352,11 @@ async function handleSearch(query) {
   repliesState.searchMode = true;
   repliesState.fanFilterMode = false;
   repliesState.fanFilterPages = [];
+  repliesState.fanFilterResults = [];
   repliesState.fanFilterIds = [];
   repliesState.imageFilterMode = false;
   repliesState.imageFilterPages = [];
+  repliesState.imageFilterResults = [];
   repliesState.imageFilterIds = [];
   IUApp.state.selectedFan = null;
   IUApp.state.hasImageFilter = false;
@@ -230,24 +364,29 @@ async function handleSearch(query) {
   // Get matching pages from search index
   const matchingPages = await IUApp.DataAPI.searchReplies(query);
   repliesState.searchPages = matchingPages;
+  repliesState.searchResults = [];
+  repliesState.hasMore = matchingPages.length > 0;
 
+  clearContent();
   await loadReplies();
 }
 
-// Load search results
-async function loadSearchResults() {
+// Load all search results (initial load)
+async function loadAllSearchResults() {
   if (repliesState.searchPages.length === 0) {
+    repliesState.hasMore = false;
     return [];
   }
 
-  // Load all matching pages
+  // Load first batch of matching pages
   const allResults = [];
   const lowerQuery = IUApp.state.searchQuery.toLowerCase();
 
-  for (const pageNum of repliesState.searchPages) {
+  // Load pages progressively for initial display
+  const initialPages = repliesState.searchPages.slice(0, 3);
+  for (const pageNum of initialPages) {
     const result = await IUApp.DataAPI.getReplies(pageNum);
     if (result?.data) {
-      // Filter matching items
       const matching = result.data.filter(r => {
         const text = `${r.content_ko || ''} ${r.content_zh || ''} ${r.fan_username || ''} ${r.fan_comment_ko || ''} ${r.fan_comment_zh || ''}`.toLowerCase();
         return text.includes(lowerQuery);
@@ -256,63 +395,119 @@ async function loadSearchResults() {
     }
   }
 
-  // Simple pagination for search results
-  const pageSize = 50;
-  const start = (repliesState.currentPage - 1) * pageSize;
-  const end = start + pageSize;
-  const pageData = allResults.slice(start, end);
+  // Store for infinite scroll continuation
+  repliesState.searchResults = allResults;
+  repliesState.hasMore = repliesState.searchPages.length > 3 || allResults.length >= 50;
 
-  repliesState.totalPages = Math.ceil(allResults.length / pageSize);
+  // Sort by replied_at descending
+  allResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
 
-  return pageData;
+  return allResults.slice(0, 50);
 }
 
-// Load fan filter results
-async function loadFanFilterResults() {
-  if (repliesState.fanFilterPages.length === 0) {
+// Load more search results for infinite scroll
+async function loadSearchResultsPage() {
+  const lowerQuery = IUApp.state.searchQuery.toLowerCase();
+  const pageBatch = Math.floor(repliesState.currentPage / 3);
+  const startPageIndex = pageBatch * 3;
+  const endPageIndex = startPageIndex + 3;
+
+  if (startPageIndex >= repliesState.searchPages.length) {
+    repliesState.hasMore = false;
     return [];
   }
 
-  // Load all matching pages
+  const pagesToLoad = repliesState.searchPages.slice(startPageIndex, endPageIndex);
+  const newResults = [];
+
+  for (const pageNum of pagesToLoad) {
+    const result = await IUApp.DataAPI.getReplies(pageNum);
+    if (result?.data) {
+      const matching = result.data.filter(r => {
+        const text = `${r.content_ko || ''} ${r.content_zh || ''} ${r.fan_username || ''} ${r.fan_comment_ko || ''} ${r.fan_comment_zh || ''}`.toLowerCase();
+        return text.includes(lowerQuery);
+      });
+      newResults.push(...matching);
+    }
+  }
+
+  newResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  repliesState.hasMore = endPageIndex < repliesState.searchPages.length;
+
+  return newResults.slice(0, 50);
+}
+
+// Load all fan filter results (initial load)
+async function loadAllFanFilterResults() {
+  if (repliesState.fanFilterPages.length === 0) {
+    repliesState.hasMore = false;
+    return [];
+  }
+
   const allResults = [];
   const fanName = IUApp.state.selectedFan;
 
-  for (const pageNum of repliesState.fanFilterPages) {
+  // Load first batch
+  const initialPages = repliesState.fanFilterPages.slice(0, 3);
+  for (const pageNum of initialPages) {
     const result = await IUApp.DataAPI.getReplies(pageNum);
     if (result?.data) {
-      // Filter matching items
       const matching = result.data.filter(r => r.fan_username === fanName);
       allResults.push(...matching);
     }
   }
 
-  // Sort by replied_at descending
+  repliesState.fanFilterResults = allResults;
+  repliesState.hasMore = repliesState.fanFilterPages.length > 3;
+
   allResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
 
-  // Simple pagination for fan filter results
-  const pageSize = 50;
-  const start = (repliesState.currentPage - 1) * pageSize;
-  const end = start + pageSize;
-  const pageData = allResults.slice(start, end);
-
-  repliesState.totalPages = Math.ceil(allResults.length / pageSize);
-
-  return pageData;
+  return allResults.slice(0, 50);
 }
 
-// Load image filter results
-async function loadImageFilterResults() {
-  if (repliesState.imageFilterPages.length === 0) {
+// Load more fan filter results for infinite scroll
+async function loadFanFilterResultsPage() {
+  const fanName = IUApp.state.selectedFan;
+  const pageBatch = Math.floor(repliesState.currentPage / 3);
+  const startPageIndex = pageBatch * 3;
+  const endPageIndex = startPageIndex + 3;
+
+  if (startPageIndex >= repliesState.fanFilterPages.length) {
+    repliesState.hasMore = false;
     return [];
   }
 
-  // Load all matching pages
-  const allResults = [];
+  const pagesToLoad = repliesState.fanFilterPages.slice(startPageIndex, endPageIndex);
+  const newResults = [];
 
-  for (const pageNum of repliesState.imageFilterPages) {
+  for (const pageNum of pagesToLoad) {
     const result = await IUApp.DataAPI.getReplies(pageNum);
     if (result?.data) {
-      // Filter matching items
+      const matching = result.data.filter(r => r.fan_username === fanName);
+      newResults.push(...matching);
+    }
+  }
+
+  newResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  repliesState.hasMore = endPageIndex < repliesState.fanFilterPages.length;
+
+  return newResults.slice(0, 50);
+}
+
+// Load all image filter results (initial load)
+async function loadAllImageFilterResults() {
+  if (repliesState.imageFilterPages.length === 0) {
+    repliesState.hasMore = false;
+    return [];
+  }
+
+  const allResults = [];
+
+  // Load first batch
+  const initialPages = repliesState.imageFilterPages.slice(0, 3);
+  for (const pageNum of initialPages) {
+    const result = await IUApp.DataAPI.getReplies(pageNum);
+    if (result?.data) {
       const matching = result.data.filter(r =>
         (r.image_count > 0) || (r.fan_image_count > 0)
       );
@@ -320,18 +515,42 @@ async function loadImageFilterResults() {
     }
   }
 
-  // Sort by replied_at descending
+  repliesState.imageFilterResults = allResults;
+  repliesState.hasMore = repliesState.imageFilterPages.length > 3;
+
   allResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
 
-  // Simple pagination for image filter results
-  const pageSize = 50;
-  const start = (repliesState.currentPage - 1) * pageSize;
-  const end = start + pageSize;
-  const pageData = allResults.slice(start, end);
+  return allResults.slice(0, 50);
+}
 
-  repliesState.totalPages = Math.ceil(allResults.length / pageSize);
+// Load more image filter results for infinite scroll
+async function loadImageFilterResultsPage() {
+  const pageBatch = Math.floor(repliesState.currentPage / 3);
+  const startPageIndex = pageBatch * 3;
+  const endPageIndex = startPageIndex + 3;
 
-  return pageData;
+  if (startPageIndex >= repliesState.imageFilterPages.length) {
+    repliesState.hasMore = false;
+    return [];
+  }
+
+  const pagesToLoad = repliesState.imageFilterPages.slice(startPageIndex, endPageIndex);
+  const newResults = [];
+
+  for (const pageNum of pagesToLoad) {
+    const result = await IUApp.DataAPI.getReplies(pageNum);
+    if (result?.data) {
+      const matching = result.data.filter(r =>
+        (r.image_count > 0) || (r.fan_image_count > 0)
+      );
+      newResults.push(...matching);
+    }
+  }
+
+  newResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  repliesState.hasMore = endPageIndex < repliesState.imageFilterPages.length;
+
+  return newResults.slice(0, 50);
 }
 
 // Handle image filter
@@ -345,18 +564,27 @@ async function handleImageFilter(hasImage) {
     repliesState.imageFilterMode = true;
     repliesState.imageFilterPages = result.pages;
     repliesState.imageFilterIds = result.ids;
+    repliesState.imageFilterResults = [];
     repliesState.searchMode = false;
     repliesState.searchQuery = '';
     repliesState.fanFilterMode = false;
     repliesState.fanFilterPages = [];
+    repliesState.fanFilterResults = [];
     repliesState.fanFilterIds = [];
     IUApp.state.selectedFan = null;
+    repliesState.hasMore = result.pages.length > 0;
   } else {
     // Exit image filter mode
     repliesState.imageFilterMode = false;
     repliesState.imageFilterPages = [];
+    repliesState.imageFilterResults = [];
     repliesState.imageFilterIds = [];
+    // Reset pagination info
+    const stats = await IUApp.DataAPI.getStats();
+    repliesState.totalPages = stats?.totalPages || 1;
+    repliesState.hasMore = repliesState.currentPage < repliesState.totalPages;
   }
 
+  clearContent();
   await loadReplies();
 }

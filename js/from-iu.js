@@ -1,5 +1,5 @@
 /**
- * From IU Page Logic
+ * From IU Page Logic - Infinite Scroll Version
  */
 
 const fromIUState = {
@@ -7,8 +7,10 @@ const fromIUState = {
   totalPages: 1,
   posts: [],
   isLoading: false,
+  isAppending: false,
   expandedPosts: new Set(),
-  iuAvatar: ''
+  iuAvatar: '',
+  hasMore: true
 };
 
 // Initialize page
@@ -25,29 +27,122 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('nav-container').appendChild(IUApp.renderNavTabs('fromIU'));
   document.getElementById('footer-container').appendChild(IUApp.renderFooter());
 
-  // Load stats for header
   await IUApp.DataAPI.getStats();
   fromIUState.iuAvatar = IUApp.IU_AVATAR;
 
   await loadFromIUPosts();
+  setupInfiniteScroll();
 });
 
-// Load From IU posts
+// Setup infinite scroll
+function setupInfiniteScroll() {
+  const paginationContainer = document.getElementById('pagination-container');
+  if (paginationContainer) {
+    paginationContainer.innerHTML = '';
+    const sentinel = document.createElement('div');
+    sentinel.id = 'infinite-sentinel';
+    paginationContainer.appendChild(sentinel);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && fromIUState.hasMore && !fromIUState.isLoading && !fromIUState.isAppending) {
+        loadMoreFromIUPosts();
+      }
+    });
+  }, { rootMargin: '200px', threshold: 0.1 });
+
+  const sentinel = document.getElementById('infinite-sentinel');
+  if (sentinel) observer.observe(sentinel);
+}
+
+async function loadMoreFromIUPosts() {
+  if (!fromIUState.hasMore || fromIUState.isAppending) return;
+
+  fromIUState.isAppending = true;
+  showInfiniteLoading();
+
+  try {
+    fromIUState.currentPage++;
+    const result = await IUApp.DataAPI.getFromIUPosts(fromIUState.currentPage);
+    const newPosts = result?.data || [];
+    fromIUState.hasMore = fromIUState.currentPage < fromIUState.totalPages;
+
+    if (newPosts.length > 0) {
+      appendPosts(newPosts);
+      fromIUState.posts.push(...newPosts);
+    } else {
+      fromIUState.hasMore = false;
+    }
+  } catch (error) {
+    console.error('Failed to load more posts:', error);
+  } finally {
+    fromIUState.isAppending = false;
+    hideInfiniteLoading();
+    if (!fromIUState.hasMore) showInfiniteEnd();
+  }
+}
+
+function showInfiniteLoading() {
+  let loader = document.getElementById('infinite-loading');
+  if (!loader) {
+    const container = document.getElementById('pagination-container');
+    if (container) {
+      loader = document.createElement('div');
+      loader.id = 'infinite-loading';
+      loader.className = 'infinite-loading';
+      loader.innerHTML = '<div class="infinite-spinner"></div>';
+      container.insertBefore(loader, container.firstChild);
+    }
+  }
+}
+
+function hideInfiniteLoading() {
+  const loader = document.getElementById('infinite-loading');
+  if (loader) loader.remove();
+}
+
+function showInfiniteEnd() {
+  let endMsg = document.getElementById('infinite-end');
+  if (!endMsg) {
+    const container = document.getElementById('pagination-container');
+    if (container) {
+      endMsg = document.createElement('div');
+      endMsg.id = 'infinite-end';
+      endMsg.className = 'infinite-end';
+      endMsg.innerHTML = IUApp.state.currentLang === 'zh' ? '— 已加载全部内容 —' : '— 모든 내용을 로드했습니다 —';
+      container.appendChild(endMsg);
+    }
+  }
+}
+
+function appendPosts(newPosts) {
+  const grid = document.getElementById('posts-grid');
+  if (!grid) return;
+
+  const startIndex = fromIUState.posts.length;
+  newPosts.forEach((post, i) => {
+    const item = document.createElement('div');
+    item.className = 'masonry-item';
+    item.appendChild(renderFromIUPostCard(post, startIndex + i));
+    grid.appendChild(item);
+  });
+}
+
 async function loadFromIUPosts() {
   const contentContainer = document.getElementById('content-container');
-  const paginationContainer = document.getElementById('pagination-container');
-
   if (!contentContainer) return;
 
   fromIUState.isLoading = true;
   contentContainer.innerHTML = '';
-  contentContainer.appendChild(IUApp.renderLoading());
+  contentContainer.appendChild(IUApp.renderSkeletonCards(6));
 
   try {
     const result = await IUApp.DataAPI.getFromIUPosts(fromIUState.currentPage);
     const posts = result?.data || [];
     fromIUState.totalPages = result?.totalPages || 1;
     fromIUState.posts = posts;
+    fromIUState.hasMore = fromIUState.currentPage < fromIUState.totalPages;
 
     contentContainer.innerHTML = '';
 
@@ -56,6 +151,7 @@ async function loadFromIUPosts() {
     } else {
       const grid = document.createElement('div');
       grid.className = 'masonry-grid';
+      grid.id = 'posts-grid';
 
       posts.forEach((post, index) => {
         const item = document.createElement('div');
@@ -67,20 +163,6 @@ async function loadFromIUPosts() {
       contentContainer.appendChild(grid);
     }
 
-    // Pagination
-    if (paginationContainer) {
-      paginationContainer.innerHTML = '';
-      paginationContainer.appendChild(IUApp.renderPagination(
-        fromIUState.currentPage,
-        fromIUState.totalPages,
-        (page) => {
-          fromIUState.currentPage = page;
-          loadFromIUPosts();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      ));
-    }
-
   } catch (error) {
     console.error('Failed to load From IU posts:', error);
     contentContainer.innerHTML = `<div class="empty-state"><p>Error loading data</p></div>`;
@@ -89,14 +171,12 @@ async function loadFromIUPosts() {
   }
 }
 
-// Toggle post expansion
 function togglePost(postId) {
   if (fromIUState.expandedPosts.has(postId)) {
     fromIUState.expandedPosts.delete(postId);
   } else {
     fromIUState.expandedPosts.add(postId);
   }
-  // Re-render the specific post
   const postCard = document.getElementById(`post-${postId}`);
   if (postCard) {
     const post = fromIUState.posts.find(p => p.id === postId);
@@ -107,7 +187,6 @@ function togglePost(postId) {
   }
 }
 
-// Get images helper
 function getImages(urls, localPaths) {
   if (localPaths && localPaths.trim()) {
     return localPaths.split(/[,|]/).map(p => p.trim()).filter(Boolean);
@@ -116,7 +195,6 @@ function getImages(urls, localPaths) {
   return urls.split(/[,|]/).map(u => u.trim()).filter(Boolean);
 }
 
-// Format full date
 function formatFullDate(dateStr) {
   if (!dateStr) return '';
   const date = new Date(dateStr);
@@ -129,7 +207,6 @@ function formatFullDate(dateStr) {
   });
 }
 
-// Render From IU post card
 function renderFromIUPostCard(post, index) {
   const div = document.createElement('div');
   div.id = `post-${post.id}`;
@@ -141,7 +218,6 @@ function renderFromIUPostCard(post, index) {
   const totalComments = post.fan_comments?.length || 0;
   const totalReplies = post.fan_comments?.reduce((sum, c) => sum + (c.iu_replies?.length || 0), 0) || 0;
 
-  // Get display text based on language
   const displayContent = IUApp.state.currentLang === 'zh'
     ? (post.content_zh || post.content_ko)
     : (post.content_ko || post.content_zh);
@@ -150,159 +226,175 @@ function renderFromIUPostCard(post, index) {
     ? (post.title_zh || post.title_ko)
     : (post.title_ko || post.title_zh);
 
-  // Build images HTML
-  const getImageGridClass = (count) => {
-    if (count === 1) return 'grid-cols-1';
-    if (count === 2) return 'grid-cols-2';
-    return 'grid-cols-2 md:grid-cols-3';
+  // Create image elements with proper event binding
+  const createImageGrid = (imgs) => {
+    const grid = document.createElement('div');
+    grid.className = `images-grid ${imgs.length === 1 ? 'grid-cols-1' : imgs.length === 2 ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`;
+
+    imgs.forEach((img, i) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'image-thumbnail';
+      thumb.dataset.images = JSON.stringify(imgs);
+      thumb.dataset.index = i;
+      thumb.innerHTML = `
+        <img src="${img}" alt="" loading="lazy">
+        <div class="image-loading"></div>
+      `;
+      thumb.addEventListener('click', () => IUApp.handleImageClick(thumb));
+      grid.appendChild(thumb);
+    });
+
+    return grid;
   };
 
-  const imagesHtml = images.length > 0 ? `
-    <div class="images-grid ${getImageGridClass(images.length)}">
-      ${images.map((img, i) => `
-        <div class="image-thumbnail" onclick="IUApp.openImageViewer('${IUApp.escapeHtml(img)}')">
-          <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')">
-          <div class="image-loading"></div>
+  // Build card content
+  const headerDiv = document.createElement('div');
+  headerDiv.className = 'post-card-header';
+  headerDiv.innerHTML = `
+    <div class="post-card-author">
+      <div class="post-card-avatar">
+        <img src="${fromIUState.iuAvatar}" alt="IU">
+      </div>
+      <div class="post-card-author-info">
+        <div class="post-card-author-name">
+          <span>IU (아이유)</span>
+          ${post.board ? `<span class="post-card-board-badge">${post.board}</span>` : ''}
         </div>
-      `).join('')}
+        <div class="post-card-time">${formatFullDate(post.post_time)}</div>
+      </div>
     </div>
-  ` : '';
+    ${displayTitle ? `<h3 class="post-card-title">${IUApp.escapeHtml(displayTitle)}</h3>` : ''}
+    <p class="post-card-content">${IUApp.escapeHtml(displayContent || '')}</p>
+    <div class="post-card-stats">
+      <span>❤️ ${(post.likes || 0).toLocaleString()}</span>
+      <span>💬 ${totalComments}</span>
+      <span>👁️ ${(post.views || 0).toLocaleString()}</span>
+    </div>
+  `;
 
-  // Build fan comments HTML
-  let commentsHtml = '';
-  if (isExpanded && post.fan_comments && post.fan_comments.length > 0) {
-    commentsHtml = post.fan_comments.map(comment => {
+  // Add images to header
+  if (images.length > 0) {
+    headerDiv.appendChild(createImageGrid(images));
+  }
+
+  div.appendChild(headerDiv);
+
+  // Comments section
+  const commentsDiv = document.createElement('div');
+  commentsDiv.className = 'post-card-comments';
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.className = 'post-card-toggle-btn';
+  toggleBtn.innerHTML = `
+    <span>${IUApp.state.currentLang === 'zh'
+      ? `${totalComments} 条粉丝评论 · ${totalReplies} 条 IU 回复`
+      : `팬 댓글 ${totalComments}개 · IU 답글 ${totalReplies}개`}</span>
+    <span class="post-card-toggle-icon ${isExpanded ? 'expanded' : ''}">▼</span>
+  `;
+  toggleBtn.addEventListener('click', () => togglePost(post.id));
+  commentsDiv.appendChild(toggleBtn);
+
+  if (isExpanded && post.fan_comments?.length > 0) {
+    const commentsList = document.createElement('div');
+    commentsList.style.marginTop = '16px';
+
+    post.fan_comments.forEach(comment => {
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'comment-card';
+
       const commentImages = getImages(comment.image_urls, comment.local_image_paths);
       const commentDisplayContent = IUApp.state.currentLang === 'zh'
         ? (comment.content_zh || comment.content_ko)
         : (comment.content_ko || comment.content_zh);
 
-      // Build IU replies for this comment
-      const iuRepliesHtml = comment.iu_replies?.map(reply => {
-        const replyImages = getImages(reply.image_urls, reply.local_image_paths);
-        const replyDisplayContent = IUApp.state.currentLang === 'zh'
-          ? (reply.content_zh || reply.content_ko)
-          : (reply.content_ko || reply.content_zh);
+      const fanCommentDiv = document.createElement('div');
+      fanCommentDiv.className = 'comment-card-fan';
+      fanCommentDiv.innerHTML = `
+        <div class="comment-card-header">
+          <div class="comment-card-avatar">
+            ${comment.fan_avatar ? `<img src="${comment.fan_avatar}">` : (comment.fan_username?.[0] || '?')}
+          </div>
+          <div>
+            <div class="comment-card-author">${IUApp.escapeHtml(comment.fan_username || '')}</div>
+            <div class="comment-card-time">${formatFullDate(comment.commented_at)}</div>
+          </div>
+        </div>
+        <div class="comment-card-content">${IUApp.escapeHtml(commentDisplayContent || '')}</div>
+      `;
 
-        const replyLabel = IUApp.state.currentLang === 'zh' ? '回复' : '답글';
+      // Add comment images
+      if (commentImages.length > 0) {
+        const imgGrid = document.createElement('div');
+        imgGrid.className = 'comment-card-images';
+        commentImages.forEach(img => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'comment-image-wrapper';
+          wrapper.dataset.images = JSON.stringify(commentImages);
+          wrapper.dataset.index = 0;
+          wrapper.innerHTML = `<img src="${img}"><div class="comment-image-loading"></div>`;
+          wrapper.addEventListener('click', () => IUApp.handleImageClick(wrapper));
+          imgGrid.appendChild(wrapper);
+        });
+        fanCommentDiv.appendChild(imgGrid);
+      }
 
-        return `
-          <div class="iu-reply-thread">
+      commentDiv.appendChild(fanCommentDiv);
+
+      // IU replies
+      if (comment.iu_replies?.length > 0) {
+        comment.iu_replies.forEach(reply => {
+          const replyImages = getImages(reply.image_urls, reply.local_image_paths);
+          const replyDisplayContent = IUApp.state.currentLang === 'zh'
+            ? (reply.content_zh || reply.content_ko)
+            : (reply.content_ko || reply.content_zh);
+
+          const replyDiv = document.createElement('div');
+          replyDiv.className = 'iu-reply-thread';
+          replyDiv.innerHTML = `
             <div class="thread-line"></div>
             <div class="iu-comment-reply">
               <div class="iu-comment-reply-header">
                 <div class="iu-comment-reply-avatar">
-                  <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
+                  <img src="${fromIUState.iuAvatar}" alt="IU">
                 </div>
                 <div>
                   <div class="iu-comment-reply-name">
                     <span class="iu-name">IU</span>
-                    <span class="reply-label">${replyLabel}</span>
+                    <span class="reply-label">${IUApp.state.currentLang === 'zh' ? '回复' : '답글'}</span>
                     <span class="reply-target">@${IUApp.escapeHtml(comment.fan_username || '')}</span>
                   </div>
                   <div class="iu-comment-reply-time">${formatFullDate(reply.replied_at)}</div>
                 </div>
               </div>
               <div class="iu-comment-reply-content">${IUApp.escapeHtml(replyDisplayContent || '')}</div>
-              ${replyImages.length > 0 ? `
-                <div class="comment-card-images">
-                  ${replyImages.map(img => `
-                    <div class="comment-image-wrapper">
-                      <img src="${img}" onclick="IUApp.openImageViewer('${IUApp.escapeHtml(img)}')" onload="this.classList.add('loaded')">
-                      <div class="comment-image-loading"></div>
-                    </div>
-                  `).join('')}
-                </div>
-              ` : ''}
             </div>
-          </div>
-        `;
-      }).join('') || '';
+          `;
 
-      return `
-        <div class="comment-card">
-          <div class="comment-card-fan">
-            <div class="comment-card-header">
-              <div class="comment-card-avatar">
-                ${comment.fan_avatar ? `<img src="${comment.fan_avatar}" onload="this.classList.add('loaded')">` : (comment.fan_username?.[0] || '?')}
-              </div>
-              <div>
-                <div class="comment-card-author">${IUApp.escapeHtml(comment.fan_username || '')}</div>
-                <div class="comment-card-time">${formatFullDate(comment.commented_at)}</div>
-              </div>
-            </div>
-            <div class="comment-card-content">${IUApp.escapeHtml(commentDisplayContent || '')}</div>
-            ${commentImages.length > 0 ? `
-              <div class="comment-card-images">
-                ${commentImages.map(img => `
-                  <div class="comment-image-wrapper">
-                    <img src="${img}" onclick="IUApp.openImageViewer('${IUApp.escapeHtml(img)}')" onload="this.classList.add('loaded')">
-                    <div class="comment-image-loading"></div>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
-          </div>
-          ${iuRepliesHtml}
-        </div>
-      `;
-    }).join('');
+          if (replyImages.length > 0) {
+            const imgGrid = document.createElement('div');
+            imgGrid.className = 'comment-card-images';
+            replyImages.forEach(img => {
+              const wrapper = document.createElement('div');
+              wrapper.className = 'comment-image-wrapper';
+              wrapper.dataset.images = JSON.stringify(replyImages);
+              wrapper.dataset.index = 0;
+              wrapper.innerHTML = `<img src="${img}"><div class="comment-image-loading"></div>`;
+              wrapper.addEventListener('click', () => IUApp.handleImageClick(wrapper));
+              imgGrid.appendChild(wrapper);
+            });
+            replyDiv.querySelector('.iu-comment-reply').appendChild(imgGrid);
+          }
+
+          commentDiv.appendChild(replyDiv);
+        });
+      }
+
+      commentsList.appendChild(commentDiv);
+    });
+
+    commentsDiv.appendChild(commentsList);
   }
 
-  div.innerHTML = `
-    <!-- IU Post Header -->
-    <div class="post-card-header">
-      <div class="post-card-author">
-        <div class="post-card-avatar">
-          <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
-        </div>
-        <div class="post-card-author-info">
-          <div class="post-card-author-name">
-            <span>IU (아이유)</span>
-            ${post.board ? `<span class="post-card-board-badge">${post.board}</span>` : ''}
-          </div>
-          <div class="post-card-time">${formatFullDate(post.post_time)}</div>
-        </div>
-      </div>
-
-      <!-- Post Title -->
-      ${displayTitle ? `<h3 class="post-card-title">${IUApp.escapeHtml(displayTitle)}</h3>` : ''}
-
-      <!-- Post Content -->
-      <p class="post-card-content">${IUApp.escapeHtml(displayContent || '')}</p>
-
-      ${imagesHtml}
-
-      <!-- Post Stats -->
-      <div class="post-card-stats">
-        <span>❤️ ${(post.likes || 0).toLocaleString()}</span>
-        <span>💬 ${totalComments}</span>
-        <span>👁️ ${(post.views || 0).toLocaleString()}</span>
-      </div>
-    </div>
-
-    <!-- Comments Section -->
-    <div class="post-card-comments">
-      <button class="post-card-toggle-btn" onclick="togglePost(${post.id})">
-        <span>${IUApp.state.currentLang === 'zh'
-          ? `${totalComments} 条粉丝评论 · ${totalReplies} 条 IU 回复`
-          : `팬 댓글 ${totalComments}개 · IU 답글 ${totalReplies}개`}</span>
-        <span class="post-card-toggle-icon ${isExpanded ? 'expanded' : ''}">▼</span>
-      </button>
-
-      ${isExpanded ? `
-        <div style="margin-top: 16px;">
-          ${commentsHtml}
-
-          ${!post.fan_comments?.length ? `
-            <div class="empty-state" style="padding: 24px;">
-              ${IUApp.state.currentLang === 'zh' ? '暂无评论' : '댓글이 없습니다'}
-            </div>
-          ` : ''}
-        </div>
-      ` : ''}
-    </div>
-  `;
-
+  div.appendChild(commentsDiv);
   return div;
 }

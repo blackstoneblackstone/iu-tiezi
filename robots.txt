@@ -1,0 +1,28 @@
+# Robots.txt for Dear IU
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://deariu.iu101.org/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Allow search engines to index all pages
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Naverbot
+Allow: /
+
+User-agent: Yeti
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Sogou
+Allow: /

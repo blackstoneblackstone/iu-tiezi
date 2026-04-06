@@ -662,7 +662,7 @@ function renderReplyCard(reply, index) {
           ${fanImages.length > 0 ? `
             <div class="images-grid ${getImageGridClass(fanImages.length)}">
               ${fanImages.map((img, i) => `
-                <div class="image-thumbnail" onclick="IUApp.openImageViewer('${escapeHtml(img)}', ${i}, '${escapeHtml(JSON.stringify(fanImages).replace(/'/g, "&#39;"))}')">
+                <div class="image-thumbnail" data-images='${JSON.stringify(fanImages)}' data-index="${i}" onclick="IUApp.handleImageClick(this)">
                   <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')">
                   <div class="image-loading"></div>
                 </div>
@@ -689,7 +689,7 @@ function renderReplyCard(reply, index) {
             ${iuImages.length > 0 ? `
               <div class="images-grid ${getImageGridClass(iuImages.length)}">
                 ${iuImages.map((img, i) => `
-                  <div class="image-thumbnail" onclick="IUApp.openImageViewer('${escapeHtml(img)}', ${i}, '${escapeHtml(JSON.stringify(iuImages).replace(/'/g, "&#39;"))}')">
+                  <div class="image-thumbnail" data-images='${JSON.stringify(iuImages)}' data-index="${i}" onclick="IUApp.handleImageClick(this)">
                     <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')">
                     <div class="image-loading"></div>
                   </div>
@@ -713,6 +713,42 @@ function renderLoading() {
     <p data-t="loading">${t('loading')}</p>
   `;
   return div;
+}
+
+// Skeleton loading for better UX
+function renderSkeletonCards(count = 6) {
+  const grid = document.createElement('div');
+  grid.className = 'skeleton-grid';
+
+  for (let i = 0; i < count; i++) {
+    const item = document.createElement('div');
+    item.className = 'skeleton-grid-item';
+    item.innerHTML = `
+      <div class="skeleton-card">
+        <div class="skeleton-header">
+          <div class="skeleton skeleton-avatar"></div>
+          <div>
+            <div class="skeleton skeleton-author"></div>
+            <div class="skeleton skeleton-date"></div>
+          </div>
+        </div>
+        <div class="skeleton-body">
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text"></div>
+        </div>
+        <div class="skeleton-reply">
+          <div class="skeleton skeleton-reply-avatar"></div>
+          <div class="skeleton-reply-bubble">
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text" style="width: 80%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(item);
+  }
+
+  return grid;
 }
 
 function renderEmpty() {
@@ -741,6 +777,29 @@ function renderFooter() {
 }
 
 // ===== Image Viewer =====
+const imageViewerState = {
+  currentImages: [],
+  currentIndex: 0,
+  zoomLevel: 1,
+  isZoomed: false
+};
+
+// Global image click handler
+function handleImageClick(element) {
+  const src = element.querySelector('img').src;
+  const imagesJson = element.dataset.images;
+  const index = parseInt(element.dataset.index) || 0;
+
+  let images = [];
+  try {
+    images = imagesJson ? JSON.parse(imagesJson) : [src];
+  } catch(e) {
+    images = [src];
+  }
+
+  openImageViewer(src, index, images);
+}
+
 function initImageViewer() {
   let modal = document.getElementById('imageModal');
   if (!modal) {
@@ -748,21 +807,53 @@ function initImageViewer() {
     modal.id = 'imageModal';
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-      <div class="modal-content">
+      <div class="modal-top-bar">
+        <div class="modal-controls">
+          <button class="modal-btn" id="modalZoomIn" title="放大">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+            </svg>
+            <span>${state.currentLang === 'zh' ? '放大' : '확대'}</span>
+          </button>
+          <button class="modal-btn" id="modalZoomOut" title="缩小">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M7 11h8"/>
+            </svg>
+            <span>${state.currentLang === 'zh' ? '缩小' : '축소'}</span>
+          </button>
+        </div>
         <button class="modal-close" onclick="closeImageViewer()">&times;</button>
+      </div>
+      <button class="modal-nav prev" id="modalPrev" title="上一张">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      <div class="modal-content">
         <div class="modal-image-container">
           <img src="" alt="" id="modalImage">
           <div class="modal-image-loading" id="modalImageLoading"></div>
         </div>
       </div>
+      <button class="modal-nav next" id="modalNext" title="下一张">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+      <div class="modal-info">
+        <span class="modal-counter" id="modalCounter">1 / 1</span>
+      </div>
     `;
     document.body.appendChild(modal);
 
+    // Click outside to close (only on overlay, not content)
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeImageViewer();
+      if (e.target === modal || e.target.classList.contains('modal-content')) {
+        closeImageViewer();
+      }
     });
 
-    // Add load handler for modal image
+    // Image load handler
     const modalImg = document.getElementById('modalImage');
     if (modalImg) {
       modalImg.onload = function() {
@@ -770,20 +861,149 @@ function initImageViewer() {
         const loading = document.getElementById('modalImageLoading');
         if (loading) loading.style.display = 'none';
       };
+      // Click to zoom toggle
+      modalImg.addEventListener('click', toggleZoom);
     }
+
+    // Navigation buttons
+    const prevBtn = document.getElementById('modalPrev');
+    const nextBtn = document.getElementById('modalNext');
+    const zoomInBtn = document.getElementById('modalZoomIn');
+    const zoomOutBtn = document.getElementById('modalZoomOut');
+
+    if (prevBtn) prevBtn.addEventListener('click', () => navigateImage(-1));
+    if (nextBtn) nextBtn.addEventListener('click', () => navigateImage(1));
+    if (zoomInBtn) zoomInBtn.addEventListener('click', () => adjustZoom(0.5));
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => adjustZoom(-0.5));
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleImageViewerKeyboard);
   }
 }
 
-function openImageViewer(src) {
+function handleImageViewerKeyboard(e) {
+  const modal = document.getElementById('imageModal');
+  if (!modal || !modal.classList.contains('active')) return;
+
+  switch(e.key) {
+    case 'Escape':
+      closeImageViewer();
+      break;
+    case 'ArrowLeft':
+      navigateImage(-1);
+      break;
+    case 'ArrowRight':
+      navigateImage(1);
+      break;
+    case 'ArrowUp':
+    case '+':
+      adjustZoom(0.5);
+      break;
+    case 'ArrowDown':
+    case '-':
+      adjustZoom(-0.5);
+      break;
+    case '0':
+      resetZoom();
+      break;
+  }
+}
+
+function openImageViewer(src, index = 0, images = null) {
   const modal = document.getElementById('imageModal');
   const img = document.getElementById('modalImage');
   const loading = document.getElementById('modalImageLoading');
-  if (modal && img) {
-    img.src = src;
-    img.classList.remove('loaded');
-    if (loading) loading.style.display = 'block';
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+
+  if (!modal || !img) return;
+
+  // Set images array
+  imageViewerState.currentImages = images || [src];
+  imageViewerState.currentIndex = index;
+  imageViewerState.zoomLevel = 1;
+  imageViewerState.isZoomed = false;
+
+  // Load current image
+  img.src = imageViewerState.currentImages[index];
+  img.classList.remove('loaded', 'zoomed');
+  img.style.transform = 'scale(1)';
+  if (loading) loading.style.display = 'block';
+
+  // Update counter and navigation visibility
+  updateModalUI();
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function navigateImage(direction) {
+  const { currentImages, currentIndex } = imageViewerState;
+  const newIndex = currentIndex + direction;
+
+  if (newIndex < 0 || newIndex >= currentImages.length) return;
+
+  const img = document.getElementById('modalImage');
+  const loading = document.getElementById('modalImageLoading');
+
+  if (!img) return;
+
+  imageViewerState.currentIndex = newIndex;
+  imageViewerState.zoomLevel = 1;
+  imageViewerState.isZoomed = false;
+
+  img.src = currentImages[newIndex];
+  img.classList.remove('loaded', 'zoomed');
+  img.style.transform = 'scale(1)';
+  if (loading) loading.style.display = 'block';
+
+  updateModalUI();
+}
+
+function toggleZoom() {
+  const img = document.getElementById('modalImage');
+  if (!img) return;
+
+  imageViewerState.isZoomed = !imageViewerState.isZoomed;
+  imageViewerState.zoomLevel = imageViewerState.isZoomed ? 2 : 1;
+  img.style.transform = `scale(${imageViewerState.zoomLevel})`;
+  img.classList.toggle('zoomed', imageViewerState.isZoomed);
+}
+
+function adjustZoom(delta) {
+  const img = document.getElementById('modalImage');
+  if (!img) return;
+
+  imageViewerState.zoomLevel = Math.max(0.5, Math.min(4, imageViewerState.zoomLevel + delta));
+  imageViewerState.isZoomed = imageViewerState.zoomLevel > 1;
+  img.style.transform = `scale(${imageViewerState.zoomLevel})`;
+  img.classList.toggle('zoomed', imageViewerState.isZoomed);
+}
+
+function resetZoom() {
+  const img = document.getElementById('modalImage');
+  if (!img) return;
+
+  imageViewerState.zoomLevel = 1;
+  imageViewerState.isZoomed = false;
+  img.style.transform = 'scale(1)';
+  img.classList.remove('zoomed');
+}
+
+function updateModalUI() {
+  const { currentImages, currentIndex } = imageViewerState;
+  const counter = document.getElementById('modalCounter');
+  const prevBtn = document.getElementById('modalPrev');
+  const nextBtn = document.getElementById('modalNext');
+
+  if (counter) {
+    counter.textContent = `${currentIndex + 1} / ${currentImages.length}`;
+  }
+
+  if (prevBtn) {
+    prevBtn.style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+  }
+
+  if (nextBtn) {
+    nextBtn.style.visibility = currentIndex < currentImages.length - 1 ? 'visible' : 'hidden';
   }
 }
 
@@ -792,12 +1012,48 @@ function closeImageViewer() {
   if (modal) {
     modal.classList.remove('active');
     document.body.style.overflow = '';
+    imageViewerState.zoomLevel = 1;
+    imageViewerState.isZoomed = false;
   }
+}
+
+// ===== Back to Top Button =====
+function initBackToTop() {
+  const btn = document.createElement('button');
+  btn.className = 'back-to-top';
+  btn.id = 'backToTopBtn';
+  btn.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  `;
+  btn.setAttribute('aria-label', state.currentLang === 'zh' ? '回到顶部' : '맨 위로');
+  btn.setAttribute('title', state.currentLang === 'zh' ? '回到顶部' : '맨 위로');
+  document.body.appendChild(btn);
+
+  // Scroll detection
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        const scrolled = window.scrollY > 300;
+        btn.classList.toggle('visible', scrolled);
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // Click handler
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 }
 
 // ===== Initialization =====
 function initCommon() {
   initImageViewer();
+  initBackToTop();
   document.documentElement.lang = state.currentLang === 'zh' ? 'zh-CN' : 'ko-KR';
 }
 
@@ -818,10 +1074,13 @@ window.IUApp = {
   renderPagination,
   renderReplyCard,
   renderLoading,
+  renderSkeletonCards,
   renderEmpty,
   renderFooter,
   openImageViewer,
   closeImageViewer,
+  handleImageClick,
   initCommon,
   toggleMoreFans,
+  imageViewerState,
 };
