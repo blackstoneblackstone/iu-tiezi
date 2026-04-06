@@ -102,6 +102,7 @@ const state = {
   hasImageFilter: false,
   searchQuery: '',
   onSelectFanCallback: null,
+  onLanguageChangeCallback: null, // 语言切换回调
 };
 
 // ===== Data API =====
@@ -290,10 +291,32 @@ function getImages(urls, localPaths, count) {
 }
 
 function setLanguage(lang) {
+  if (state.currentLang === lang) return;
   state.currentLang = lang;
   localStorage.setItem('iu-lang', lang);
   document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'ko-KR';
+
+  // Re-render header
+  const headerContainer = document.getElementById('header-container');
+  if (headerContainer) {
+    headerContainer.innerHTML = '';
+    headerContainer.appendChild(renderHeader());
+  }
+
+  // Re-render footer
+  const footerContainer = document.getElementById('footer-container');
+  if (footerContainer) {
+    footerContainer.innerHTML = '';
+    footerContainer.appendChild(renderFooter());
+  }
+
+  // Update stats bar labels
   updatePageLanguage();
+
+  // Call content re-render callback if set
+  if (state.onLanguageChangeCallback) {
+    state.onLanguageChangeCallback();
+  }
 }
 
 function updatePageLanguage() {

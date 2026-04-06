@@ -110,6 +110,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Setup infinite scroll
   setupInfiniteScroll();
 
+  // Set language change callback to re-render content
+  IUApp.state.onLanguageChangeCallback = async () => {
+    repliesState.currentPage = 1;
+    clearContent();
+    await loadReplies();
+  };
+
   // Check URL params for fan filter
   const urlParams = new URLSearchParams(window.location.search);
   const fanParam = urlParams.get('fan');

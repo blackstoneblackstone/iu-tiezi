@@ -32,6 +32,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadFromIUPosts();
   setupInfiniteScroll();
+
+  // Set language change callback to re-render content
+  IUApp.state.onLanguageChangeCallback = async () => {
+    fromIUState.currentPage = 1;
+    fromIUState.expandedPosts.clear();
+    const contentContainer = document.getElementById('content-container');
+    if (contentContainer) {
+      contentContainer.innerHTML = '';
+      contentContainer.appendChild(IUApp.renderSkeletonCards(6));
+    }
+    await loadFromIUPosts();
+  };
 });
 
 // Setup infinite scroll
