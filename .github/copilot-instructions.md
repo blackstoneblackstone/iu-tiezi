@@ -1,0 +1,35 @@
+# GitHub Copilot Instructions
+
+## Design Context
+
+### Users
+IU fans (Uaena) seeking deep emotional connection with IU through her community interactions. They visit with warmth and intimacy in mind - wanting to feel close to IU and experience her personality through replies. Bilingual audience (Chinese/Korean fans).
+
+### Brand Personality
+**Intimate & cozy** - The site should feel like a warm, personal space where fans connect with IU. Not cold or corporate, not flashy or hype-driven. Think of it as a digital scrapbook of cherished memories shared between IU and her fans.
+
+### Aesthetic Direction
+Dark mode stays - OLED-style deep black provides cinematic, intimate atmosphere that works well for fan community sites. Purple accent (#9779ea) connects to IU's brand colors. Keep the warm glow effects that create emotional resonance. Refine and polish existing direction rather than radical redesign.
+
+Key principles:
+- **Warm over cold**: Glow effects should feel inviting, not techy
+- **Personal over corporate**: No sterile templates, embrace human touches
+- **Emotional over functional**: Design should evoke feelings, not just display data
+
+### Design Principles
+1. **Emotional resonance**: Every element should make fans feel closer to IU
+2. **Bilingual harmony**: Chinese and Korean should feel equally natural
+3. **Dark intimacy**: Use dark mode to create cozy, cinema-like atmosphere
+4. **Gentle motion**: Animations should feel soft and welcoming, not flashy
+5. **Fan-centric**: Highlight the connection between IU and her Uaena
+
+### Visual Notes
+- Primary color: Purple (#9779ea) - IU's signature color
+- Background: OLED black (#0A0A0F) with subtle purple gradient overlays
+- Typography: Noto Sans SC/KR for bilingual readability
+- Glow effects should be soft and warm, not harsh or neon
+- Card borders should feel gentle, not sharp or clinical
+
+**Why**: IU's brand identity is deeply connected to purple, and fans associate it with her. The dark theme creates an intimate, emotional viewing experience appropriate for reading heartfelt messages.
+
+**How to apply**: When designing new elements, ask "does this make fans feel warmer?" Avoid tech-startup aesthetics, generic card patterns, or cold corporate touches.
