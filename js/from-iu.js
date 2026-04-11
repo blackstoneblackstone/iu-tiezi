@@ -249,7 +249,7 @@ function renderFromIUPostCard(post, index) {
       thumb.dataset.images = JSON.stringify(imgs);
       thumb.dataset.index = i;
       thumb.innerHTML = `
-        <img src="${img}" alt="" loading="lazy">
+        <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')">
         <div class="image-loading"></div>
       `;
       thumb.addEventListener('click', () => IUApp.handleImageClick(thumb));
@@ -265,7 +265,7 @@ function renderFromIUPostCard(post, index) {
   headerDiv.innerHTML = `
     <div class="post-card-author">
       <div class="post-card-avatar">
-        <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
+        <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
       </div>
       <div class="post-card-author-info">
         <div class="post-card-author-name">
@@ -324,7 +324,7 @@ function renderFromIUPostCard(post, index) {
       fanCommentDiv.innerHTML = `
         <div class="comment-card-header">
           <div class="comment-card-avatar">
-            ${comment.fan_avatar ? `<img src="${comment.fan_avatar}">` : (comment.fan_username?.[0] || '?')}
+            ${comment.fan_avatar ? `<img src="${comment.fan_avatar}" alt="" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">` : (comment.fan_username?.[0] || '?')}
           </div>
           <div>
             <div class="comment-card-author">${IUApp.escapeHtml(comment.fan_username || '')}</div>
@@ -343,7 +343,7 @@ function renderFromIUPostCard(post, index) {
           wrapper.className = 'comment-image-wrapper';
           wrapper.dataset.images = JSON.stringify(commentImages);
           wrapper.dataset.index = 0;
-          wrapper.innerHTML = `<img src="${img}"><div class="comment-image-loading"></div>`;
+          wrapper.innerHTML = `<img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')"><div class="comment-image-loading"></div>`;
           wrapper.addEventListener('click', () => IUApp.handleImageClick(wrapper));
           imgGrid.appendChild(wrapper);
         });
@@ -367,7 +367,7 @@ function renderFromIUPostCard(post, index) {
             <div class="iu-comment-reply">
               <div class="iu-comment-reply-header">
                 <div class="iu-comment-reply-avatar">
-                  <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
+                  <img src="${fromIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
                 </div>
                 <div>
                   <div class="iu-comment-reply-name">
@@ -390,7 +390,7 @@ function renderFromIUPostCard(post, index) {
               wrapper.className = 'comment-image-wrapper';
               wrapper.dataset.images = JSON.stringify(replyImages);
               wrapper.dataset.index = 0;
-              wrapper.innerHTML = `<img src="${img}"><div class="comment-image-loading"></div>`;
+              wrapper.innerHTML = `<img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')"><div class="comment-image-loading"></div>`;
               wrapper.addEventListener('click', () => IUApp.handleImageClick(wrapper));
               imgGrid.appendChild(wrapper);
             });

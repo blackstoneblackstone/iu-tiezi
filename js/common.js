@@ -408,7 +408,7 @@ async function renderFansWall(onSelectFan) {
         <div class="fan-avatar ${state.selectedFan === fan.username ? 'selected' : ''}"
              data-fan="${escapeHtml(fan.username)}"
              title="${escapeHtml(fan.username)} (${fan.reply_count})">
-          <img src="${fan.avatar_url}" alt="${escapeHtml(fan.username)}" loading="lazy" onload="this.classList.add('loaded')">
+          <img src="${fan.avatar_url}" alt="${escapeHtml(fan.username)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
           <span class="reply-count">${fan.reply_count}</span>
         </div>
       `).join('')}
@@ -474,7 +474,7 @@ function toggleMoreFans(btn) {
       avatarDiv.dataset.fan = fan.username;
       avatarDiv.title = `${fan.username} (${fan.reply_count})`;
       avatarDiv.innerHTML = `
-        <img src="${fan.avatar_url}" alt="${fan.username}" loading="lazy" onload="this.classList.add('loaded')">
+        <img src="${fan.avatar_url}" alt="${fan.username}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
         <span class="reply-count">${fan.reply_count}</span>
       `;
       avatarDiv.addEventListener('click', () => {
@@ -663,7 +663,7 @@ function renderReplyCard(reply, index) {
     <div class="reply-card-header">
       ${fanAvatarSrc ? `
         <div class="reply-card-avatar-wrapper">
-          <img src="${fanAvatarSrc}" alt="${escapeHtml(fanDisplayName)}" class="reply-card-avatar" onload="this.classList.add('loaded')">
+          <img src="${fanAvatarSrc}" alt="${escapeHtml(fanDisplayName)}" class="reply-card-avatar" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
         </div>
       ` : `
         <div class="reply-card-avatar-fallback">
@@ -686,7 +686,7 @@ function renderReplyCard(reply, index) {
             <div class="images-grid ${getImageGridClass(fanImages.length)}">
               ${fanImages.map((img, i) => `
                 <div class="image-thumbnail" data-images='${JSON.stringify(fanImages)}' data-index="${i}" onclick="IUApp.handleImageClick(this)">
-                  <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')">
+                  <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')">
                   <div class="image-loading"></div>
                 </div>
               `).join('')}
@@ -698,7 +698,7 @@ function renderReplyCard(reply, index) {
       <!-- IU Reply -->
       <div class="iu-reply-box">
         <div class="iu-reply-avatar-wrapper">
-          <img src="${IU_AVATAR}" alt="IU" class="iu-reply-avatar" onload="this.classList.add('loaded')">
+          <img src="${IU_AVATAR}" alt="IU" class="iu-reply-avatar" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
         </div>
         <div class="iu-reply-content-wrapper">
           <div class="iu-reply-bubble">
@@ -713,7 +713,7 @@ function renderReplyCard(reply, index) {
               <div class="images-grid ${getImageGridClass(iuImages.length)}">
                 ${iuImages.map((img, i) => `
                   <div class="image-thumbnail" data-images='${JSON.stringify(iuImages)}' data-index="${i}" onclick="IUApp.handleImageClick(this)">
-                    <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')">
+                    <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')">
                     <div class="image-loading"></div>
                   </div>
                 `).join('')}

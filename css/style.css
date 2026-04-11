@@ -612,6 +612,11 @@ body {
   opacity: 1;
 }
 
+.image-thumbnail img.loaded.image-error {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
 .image-thumbnail .image-loading {
   position: absolute;
   width: 20px;
@@ -1016,6 +1021,11 @@ body {
 
 .comment-card-images img.loaded {
   opacity: 1;
+}
+
+.comment-card-images img.loaded.image-error {
+  opacity: 0.5;
+  filter: grayscale(1);
 }
 
 .comment-card-images img:hover {

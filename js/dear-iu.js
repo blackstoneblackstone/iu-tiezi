@@ -223,7 +223,7 @@ function renderDearIUPostCard(post, index) {
       thumb.className = 'image-thumbnail';
       thumb.dataset.images = JSON.stringify(imgs);
       thumb.dataset.index = i;
-      thumb.innerHTML = `<img src="${img}" alt="" loading="lazy"><div class="image-loading"></div>`;
+      thumb.innerHTML = `<img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')"><div class="image-loading"></div>`;
       thumb.addEventListener('click', () => IUApp.handleImageClick(thumb));
       grid.appendChild(thumb);
     });
@@ -237,7 +237,7 @@ function renderDearIUPostCard(post, index) {
   headerDiv.innerHTML = `
     <div class="post-card-author">
       <div class="post-card-avatar">
-        ${authorAvatar ? `<img src="${authorAvatar}">` : (post.author_username?.[0] || '?')}
+        ${authorAvatar ? `<img src="${authorAvatar}" alt="" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">` : (post.author_username?.[0] || '?')}
       </div>
       <div class="post-card-author-info">
         <div class="post-card-author-name" style="color: var(--text-primary);">
@@ -275,7 +275,7 @@ function renderDearIUPostCard(post, index) {
         <div class="iu-comment-reply">
           <div class="iu-comment-reply-header">
             <div class="iu-comment-reply-avatar">
-              <img src="${dearIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')">
+              <img src="${dearIUState.iuAvatar}" alt="IU" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
             </div>
             <div>
               <div class="iu-comment-reply-name">
@@ -298,7 +298,7 @@ function renderDearIUPostCard(post, index) {
           wrapper.className = 'comment-image-wrapper';
           wrapper.dataset.images = JSON.stringify(replyImages);
           wrapper.dataset.index = 0;
-          wrapper.innerHTML = `<img src="${img}"><div class="comment-image-loading"></div>`;
+          wrapper.innerHTML = `<img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')"><div class="comment-image-loading"></div>`;
           wrapper.addEventListener('click', () => IUApp.handleImageClick(wrapper));
           imgGrid.appendChild(wrapper);
         });
