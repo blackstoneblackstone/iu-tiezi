@@ -730,6 +730,8 @@ function renderReplyCard(reply, index) {
   const iuReplyAv = div.querySelector('img.iu-reply-avatar');
   if (iuReplyAv) ensureImgVisible(iuReplyAv);
 
+  finalizeProgressiveImages(div);
+
   return div;
 }
 
@@ -1079,6 +1081,55 @@ function initBackToTop() {
 }
 
 /**
+ * Thumbnails / comment images start at opacity:0 until .loaded.
+ * Browsers often finish cache hits before the inline onload runs, so onload never fires — fix by checking img.complete after DOM insert.
+ */
+function finalizeProgressiveImages(root) {
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll('.image-thumbnail img, .comment-card-images img').forEach((img) => {
+    const markLoaded = () => {
+      img.classList.add('loaded');
+    };
+    const markFailed = () => {
+      img.classList.add('loaded');
+      img.classList.add('image-error');
+    };
+    const finishIfDecoded = () => {
+      if (!img.complete) return false;
+      markLoaded();
+      if (!img.naturalWidth) img.classList.add('image-error');
+      return true;
+    };
+
+    if (finishIfDecoded()) return;
+
+    const onLoad = () => {
+      markLoaded();
+      if (!img.naturalWidth) img.classList.add('image-error');
+    };
+    img.addEventListener('load', onLoad, { once: true });
+    img.addEventListener('error', markFailed, { once: true });
+
+    if (typeof img.decode === 'function') {
+      img.decode().then(() => {
+        if (!img.classList.contains('loaded')) onLoad();
+      }).catch(() => {});
+    }
+
+    requestAnimationFrame(() => {
+      if (finishIfDecoded()) return;
+      requestAnimationFrame(() => {
+        finishIfDecoded();
+      });
+    });
+
+    if (img.closest('.comment-card-images')) {
+      ensureImgVisible(img, 12000);
+    }
+  });
+}
+
+/**
  * Fade-in images use opacity:0 until .loaded. If the request hangs (e.g. blocked CDN),
  * load/error may never fire — this guarantees the img becomes visible after timeout.
  */
@@ -1130,4 +1181,5 @@ window.IUApp = {
   toggleMoreFans,
   imageViewerState,
   ensureImgVisible,
+  finalizeProgressiveImages,
 };

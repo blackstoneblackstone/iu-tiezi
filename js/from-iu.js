@@ -249,12 +249,13 @@ function renderFromIUPostCard(post, index) {
       thumb.dataset.images = JSON.stringify(imgs);
       thumb.dataset.index = i;
       thumb.innerHTML = `
-        <img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')">
+        <img src="${img}" alt="" loading="eager" decoding="async" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')">
         <div class="image-loading"></div>
       `;
       thumb.addEventListener('click', () => IUApp.handleImageClick(thumb));
       grid.appendChild(thumb);
     });
+    IUApp.finalizeProgressiveImages(grid);
 
     return grid;
   };
@@ -343,16 +344,17 @@ function renderFromIUPostCard(post, index) {
       if (commentImages.length > 0) {
         const imgGrid = document.createElement('div');
         imgGrid.className = 'comment-card-images';
-        commentImages.forEach(img => {
+        commentImages.forEach((imgSrc, i) => {
           const wrapper = document.createElement('div');
           wrapper.className = 'comment-image-wrapper';
           wrapper.dataset.images = JSON.stringify(commentImages);
-          wrapper.dataset.index = 0;
-          wrapper.innerHTML = `<img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')"><div class="comment-image-loading"></div>`;
+          wrapper.dataset.index = String(i);
+          wrapper.innerHTML = `<img src="${imgSrc}" alt="" loading="eager" decoding="async" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')"><div class="comment-image-loading"></div>`;
           wrapper.addEventListener('click', () => IUApp.handleImageClick(wrapper));
           imgGrid.appendChild(wrapper);
         });
         fanCommentDiv.appendChild(imgGrid);
+        IUApp.finalizeProgressiveImages(imgGrid);
       }
 
       commentDiv.appendChild(fanCommentDiv);
@@ -390,16 +392,17 @@ function renderFromIUPostCard(post, index) {
           if (replyImages.length > 0) {
             const imgGrid = document.createElement('div');
             imgGrid.className = 'comment-card-images';
-            replyImages.forEach(img => {
+            replyImages.forEach((imgSrc, i) => {
               const wrapper = document.createElement('div');
               wrapper.className = 'comment-image-wrapper';
               wrapper.dataset.images = JSON.stringify(replyImages);
-              wrapper.dataset.index = 0;
-              wrapper.innerHTML = `<img src="${img}" alt="" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')"><div class="comment-image-loading"></div>`;
+              wrapper.dataset.index = String(i);
+              wrapper.innerHTML = `<img src="${imgSrc}" alt="" loading="eager" decoding="async" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.classList.add('image-error')"><div class="comment-image-loading"></div>`;
               wrapper.addEventListener('click', () => IUApp.handleImageClick(wrapper));
               imgGrid.appendChild(wrapper);
             });
             replyDiv.querySelector('.iu-comment-reply').appendChild(imgGrid);
+            IUApp.finalizeProgressiveImages(imgGrid);
           }
 
           commentDiv.appendChild(replyDiv);
@@ -413,5 +416,6 @@ function renderFromIUPostCard(post, index) {
   }
 
   div.appendChild(commentsDiv);
+  IUApp.finalizeProgressiveImages(div);
   return div;
 }
