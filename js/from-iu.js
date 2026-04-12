@@ -288,6 +288,8 @@ function renderFromIUPostCard(post, index) {
   if (images.length > 0) {
     headerDiv.appendChild(createImageGrid(images));
   }
+  const headerAvImg = headerDiv.querySelector('.post-card-avatar img');
+  if (headerAvImg) IUApp.ensureImgVisible(headerAvImg);
 
   div.appendChild(headerDiv);
 
@@ -321,10 +323,11 @@ function renderFromIUPostCard(post, index) {
 
       const fanCommentDiv = document.createElement('div');
       fanCommentDiv.className = 'comment-card-fan';
+      const fanAvatarSrc = comment.fan_local_avatar || comment.fan_avatar;
       fanCommentDiv.innerHTML = `
         <div class="comment-card-header">
           <div class="comment-card-avatar">
-            ${comment.fan_avatar ? `<img src="${comment.fan_avatar}" alt="" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">` : (comment.fan_username?.[0] || '?')}
+            ${fanAvatarSrc ? `<img src="${fanAvatarSrc}" alt="" referrerpolicy="no-referrer" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">` : (comment.fan_username?.[0] || '?')}
           </div>
           <div>
             <div class="comment-card-author">${IUApp.escapeHtml(comment.fan_username || '')}</div>
@@ -333,6 +336,8 @@ function renderFromIUPostCard(post, index) {
         </div>
         <div class="comment-card-content">${IUApp.escapeHtml(commentDisplayContent || '')}</div>
       `;
+      const fanAvImg = fanCommentDiv.querySelector('.comment-card-avatar img');
+      if (fanAvImg) IUApp.ensureImgVisible(fanAvImg);
 
       // Add comment images
       if (commentImages.length > 0) {

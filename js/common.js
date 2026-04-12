@@ -663,7 +663,7 @@ function renderReplyCard(reply, index) {
     <div class="reply-card-header">
       ${fanAvatarSrc ? `
         <div class="reply-card-avatar-wrapper">
-          <img src="${fanAvatarSrc}" alt="${escapeHtml(fanDisplayName)}" class="reply-card-avatar" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
+          <img src="${fanAvatarSrc}" alt="${escapeHtml(fanDisplayName)}" class="reply-card-avatar" referrerpolicy="no-referrer" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">
         </div>
       ` : `
         <div class="reply-card-avatar-fallback">
@@ -724,6 +724,11 @@ function renderReplyCard(reply, index) {
       </div>
     </div>
   `;
+
+  const replyFanAvatarImg = div.querySelector('img.reply-card-avatar');
+  if (replyFanAvatarImg) ensureImgVisible(replyFanAvatarImg);
+  const iuReplyAv = div.querySelector('img.iu-reply-avatar');
+  if (iuReplyAv) ensureImgVisible(iuReplyAv);
 
   return div;
 }
@@ -1073,6 +1078,24 @@ function initBackToTop() {
   });
 }
 
+/**
+ * Fade-in images use opacity:0 until .loaded. If the request hangs (e.g. blocked CDN),
+ * load/error may never fire — this guarantees the img becomes visible after timeout.
+ */
+function ensureImgVisible(img, timeoutMs = 8000) {
+  if (!img || img.classList.contains('loaded')) return;
+  const done = () => {
+    img.classList.add('loaded');
+  };
+  if (img.complete) {
+    done();
+    return;
+  }
+  img.addEventListener('load', done, { once: true });
+  img.addEventListener('error', done, { once: true });
+  setTimeout(done, timeoutMs);
+}
+
 // ===== Initialization =====
 function initCommon() {
   initImageViewer();
@@ -1106,4 +1129,5 @@ window.IUApp = {
   initCommon,
   toggleMoreFans,
   imageViewerState,
+  ensureImgVisible,
 };

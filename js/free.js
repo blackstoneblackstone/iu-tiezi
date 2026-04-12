@@ -236,7 +236,7 @@ function renderFreePostCard(post, index) {
   headerDiv.innerHTML = `
     <div class="post-card-author">
       <div class="post-card-avatar">
-        ${authorAvatar ? `<img src="${authorAvatar}" alt="" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">` : (post.author_username?.[0] || '?')}
+        ${authorAvatar ? `<img src="${authorAvatar}" alt="" referrerpolicy="no-referrer" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')">` : (post.author_username?.[0] || '?')}
       </div>
       <div class="post-card-author-info">
         <div class="post-card-author-name" style="color: var(--text-primary);">
@@ -253,6 +253,8 @@ function renderFreePostCard(post, index) {
   if (images.length > 0) {
     headerDiv.appendChild(createImageGrid(images));
   }
+  const headerAuthorImg = headerDiv.querySelector('.post-card-avatar img');
+  if (headerAuthorImg) IUApp.ensureImgVisible(headerAuthorImg);
 
   div.appendChild(headerDiv);
 
