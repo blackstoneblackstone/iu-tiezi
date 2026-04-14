@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>From IU Tiezi 工作流程图 | Excalidraw</title>
+  <meta name="description" content="IU社区回帖数据获取流程图 - 使用Excalidraw绘制">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8f9fa;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* Main Container */
+    .container {
+      display: flex;
+      height: calc(100vh - 80px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: white;
+      border-right: 1px solid #e8e8e8;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      margin-bottom: 28px;
+    }
+
+    .sidebar-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .step-list {
+      list-style: none;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 4px;
+    }
+
+    .step-item:hover {
+      background: #f5f5f5;
+    }
+
+    .step-item.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-item.active .step-number {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .step-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Legend */
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .legend-color.start { background: #90EE90; }
+    .legend-color.process { background: #87CEEB; }
+    .legend-color.decision { background: #FFD700; }
+    .legend-color.end { background: #FFB6C1; }
+    .legend-color.api { background: #E0E0E0; }
+
+    /* Excalidraw Container */
+    .excalidraw-wrapper {
+      flex: 1;
+      position: relative;
+      background: #fff;
+    }
+
+    #excalidraw-container {
+      width: 100%;
+      height: 100%;
+      min-height: 480px;
+      position: relative;
+    }
+
+    /* Loading State */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Info Panel */
+    .info-panel {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      max-width: 320px;
+      display: none;
+    }
+
+    .info-panel.show {
+      display: block;
+    }
+
+    .info-panel h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .info-panel p {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .info-panel .api-url {
+      background: #f5f5f5;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #667eea;
+      margin-top: 10px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div>
+      <h1>From IU Tiezi 工作流程图</h1>
+      <p>数据获取、翻译、图片处理完整流程</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="resetView()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/>
+          <path d="M3 3v9h9"/>
+        </svg>
+        重置视图
+      </button>
+      <button class="btn btn-primary" onclick="exportImage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        导出图片
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">流程步骤</div>
+        <ul class="step-list">
+          <li class="step-item active" data-step="1">
+            <span class="step-number">1</span>
+            <span class="step-text">获取IU回复列表</span>
+          </li>
+          <li class="step-item" data-step="2">
+            <span class="step-number">2</span>
+            <span class="step-text">获取原帖详情</span>
+          </li>
+          <li class="step-item" data-step="3">
+            <span class="step-number">3</span>
+            <span class="step-text">获取评论详情</span>
+          </li>
+          <li class="step-item" data-step="4">
+            <span class="step-number">4</span>
+            <span class="step-text">数据去重检查</span>
+          </li>
+          <li class="step-item" data-step="5">
+            <span class="step-number">5</span>
+            <span class="step-text">数据整合</span>
+          </li>
+          <li class="step-item" data-step="6">
+            <span class="step-number">6</span>
+            <span class="step-text">翻译内容</span>
+          </li>
+          <li class="step-item" data-step="7">
+            <span class="step-number">7</span>
+            <span class="step-text">下载图片</span>
+          </li>
+          <li class="step-item" data-step="8">
+            <span class="step-number">8</span>
+            <span class="step-text">上传图片到R2</span>
+          </li>
+          <li class="step-item" data-step="9">
+            <span class="step-number">9</span>
+            <span class="step-text">更新图片URL</span>
+          </li>
+          <li class="step-item" data-step="10">
+            <span class="step-number">10</span>
+            <span class="step-text">保存数据文件</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">图例说明</div>
+        <div class="legend-item">
+          <div class="legend-color start"></div>
+          <span>开始/结束</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color process"></div>
+          <span>处理步骤</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color decision"></div>
+          <span>判断/分支</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color api"></div>
+          <span>API调用</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Excalidraw Container -->
+    <div class="excalidraw-wrapper">
+      <div id="excalidraw-container">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>正在加载 Excalidraw...</p>
+        </div>
+      </div>
+
+      <!-- Info Panel -->
+      <div class="info-panel" id="infoPanel">
+        <h3 id="infoTitle">步骤详情</h3>
+        <p id="infoDesc">点击流程图节点查看详情</p>
+        <div class="api-url" id="apiUrl" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Excalidraw（UMD 依赖全局 React、ReactJSXRuntime、ReactDOM） -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script>
+    /* @excalidraw/excalidraw UMD 第二参为 react/jsx-runtime；仅用 script 标签时不会自动存在，需补齐 */
+    (function () {
+      var React = typeof window !== 'undefined' ? window.React : null;
+      if (!React) return;
+      var REACT_ELEMENT_TYPE = Symbol.for('react.element');
+      var REACT_FRAGMENT_TYPE = Symbol.for('react.fragment');
+      var hasOwn = Object.prototype.hasOwnProperty;
+      var RESERVED = { key: true, ref: true, __self: true, __source: true };
+      var internals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+      var owner = internals && internals.ReactCurrentOwner;
+      function jsxProd(type, config, maybeKey) {
+        var propName;
+        var props = {};
+        var key = null;
+        var ref = null;
+        if (maybeKey !== undefined) key = '' + maybeKey;
+        if (config != null) {
+          if (config.key !== undefined) key = '' + config.key;
+          if (config.ref !== undefined) ref = config.ref;
+          for (propName in config) {
+            if (hasOwn.call(config, propName) && !RESERVED.hasOwnProperty(propName)) {
+              props[propName] = config[propName];
+            }
+          }
+        }
+        if (type && type.defaultProps) {
+          var defs = type.defaultProps;
+          for (propName in defs) {
+            if (props[propName] === undefined) props[propName] = defs[propName];
+          }
+        }
+        return {
+          $$typeof: REACT_ELEMENT_TYPE,
+          type: type,
+          key: key,
+          ref: ref,
+          props: props,
+          _owner: owner ? owner.current : undefined
+        };
+      }
+      var rt = { Fragment: REACT_FRAGMENT_TYPE, jsx: jsxProd, jsxs: jsxProd };
+      window.ReactJSXRuntime = rt;
+      if (typeof globalThis !== 'undefined') globalThis.ReactJSXRuntime = rt;
+      if (typeof self !== 'undefined') self.ReactJSXRuntime = rt;
+    })();
+  </script>
+  <script src="https://unpkg.com/@excalidraw/excalidraw@0.17.0/dist/excalidraw.production.min.js"></script>
+
+  <script>
+    // 流程图：形状 + 用绝对坐标 points 生成的箭头（不依赖 start/end 绑定——0.17 UMD 下绑定常导致箭头不落盘）
+    const flowchartShapes = [
+      // 开始节点
+      {
+        id: "start",
+        type: "ellipse",
+        x: 400,
+        y: 50,
+        width: 120,
+        height: 60,
+        backgroundColor: "#90EE90",
+        strokeColor: "#2d5016",
+        strokeWidth: 2,
+        roundness: { type: 2 },
+        label: {
+          text: "开始",
+          fontSize: 16,
+          fontFamily: 6,
+          color: "#2d5016"
+        }
+      },
+
+      // 步骤1: 获取IU回复列表
+      {
+        id: "step1",
+        type: "rectangle",
+        x: 340,
+        y: 150,
+        width: 240,
+        height: 80,
+        backgroundColor: "#87CEEB",
+        strokeColor: "#1a5276",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "1. 获取IU回复列表\n筛选From.IU板块",
+          fontSize: 14,
+          fontFamily: 6,
+          color: "#1a5276",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // API标注
+      {
+        id: "api1",
+        type: "rectangle",
+        x: 620,
+        y: 160,
+        width: 200,
+        height: 60,
+        backgroundColor: "#f0f0f0",
+        strokeColor: "#666",
+        strokeWidth: 1,
+        strokeStyle: 2,
+        roundness: { type: 3, value: 4 },
+        label: {
+          text: "GET /v2/community/5/artist/48/archive",
+          fontSize: 11,
+          fontFamily: 5,
+          color: "#666"
+        }
+      },
+
+      // 步骤2: 获取原帖详情
+      {
+        id: "step2",
+        type: "rectangle",
+        x: 340,
+        y: 280,
+        width: 240,
+        height: 80,
+        backgroundColor: "#87CEEB",
+        strokeColor: "#1a5276",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "2. 获取原帖详情\n解析POST和CMT",
+          fontSize: 14,
+          fontFamily: 6,
+          color: "#1a5276",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // API标注2
+      {
+        id: "api2",
+        type: "rectangle",
+        x: 620,
+        y: 290,
+        width: 200,
+        height: 60,
+        backgroundColor: "#f0f0f0",
+        strokeColor: "#666",
+        strokeWidth: 1,
+        strokeStyle: 2,
+        roundness: { type: 3, value: 4 },
+        label: {
+          text: "GET /v1/community/5/post/{postId}",
+          fontSize: 11,
+          fontFamily: 5,
+          color: "#666"
+        }
+      },
+
+      // 步骤3: 获取评论详情
+      {
+        id: "step3",
+        type: "rectangle",
+        x: 340,
+        y: 410,
+        width: 240,
+        height: 80,
+        backgroundColor: "#87CEEB",
+        strokeColor: "#1a5276",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "3. 获取评论详情\n提取图片和头像",
+          fontSize: 14,
+          fontFamily: 6,
+          color: "#1a5276",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // API标注3
+      {
+        id: "api3",
+        type: "rectangle",
+        x: 620,
+        y: 420,
+        width: 220,
+        height: 60,
+        backgroundColor: "#f0f0f0",
+        strokeColor: "#666",
+        strokeWidth: 1,
+        strokeStyle: 2,
+        roundness: { type: 3, value: 4 },
+        label: {
+          text: "GET /v1/comment/comments/{commentSeq}",
+          fontSize: 11,
+          fontFamily: 5,
+          color: "#666"
+        }
+      },
+
+      // 步骤4: 数据去重检查（判断节点）
+      {
+        id: "step4",
+        type: "diamond",
+        x: 400,
+        y: 540,
+        width: 160,
+        height: 100,
+        backgroundColor: "#FFD700",
+        strokeColor: "#b7950b",
+        strokeWidth: 2,
+        label: {
+          text: "4. 数据去重\npost_uuid已存在?",
+          fontSize: 13,
+          fontFamily: 6,
+          color: "#7d6608",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // 跳过分支
+      {
+        id: "skip",
+        type: "rectangle",
+        x: 620,
+        y: 550,
+        width: 120,
+        height: 80,
+        backgroundColor: "#ffcccb",
+        strokeColor: "#c0392b",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "跳过该帖子",
+          fontSize: 13,
+          fontFamily: 6,
+          color: "#922b21",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // 步骤5: 数据整合
+      {
+        id: "step5",
+        type: "rectangle",
+        x: 340,
+        y: 700,
+        width: 240,
+        height: 70,
+        backgroundColor: "#87CEEB",
+        strokeColor: "#1a5276",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "5. 数据整合\n插入到data数组开头",
+          fontSize: 14,
+          fontFamily: 6,
+          color: "#1a5276",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // 步骤6: 翻译内容
+      {
+        id: "step6",
+        type: "rectangle",
+        x: 340,
+        y: 820,
+        width: 240,
+        height: 80,
+        backgroundColor: "#87CEEB",
+        strokeColor: "#1a5276",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "6. 翻译内容\n调用iu-translator技能",
+          fontSize: 14,
+          fontFamily: 6,
+          color: "#1a5276",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // 步骤7: 下载图片
+      {
+        id: "step7",
+        type: "rectangle",
+        x: 340,
+        y: 950,
+        width: 240,
+        height: 100,
+        backgroundColor: "#87CEEB",
+        strokeColor: "#1a5276",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "7. 下载图片\n头像/帖子/评论/回复",
+          fontSize: 14,
+          fontFamily: 6,
+          color: "#1a5276",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // 步骤8: 上传图片到R2（判断分支）
+      {
+        id: "step8",
+        type: "diamond",
+        x: 400,
+        y: 1120,
+        width: 160,
+        height: 120,
+        backgroundColor: "#FFD700",
+        strokeColor: "#b7950b",
+        strokeWidth: 2,
+        label: {
+          text: "8. 上传图片到R2\n选择正确的存储路径",
+          fontSize: 12,
+          fontFamily: 6,
+          color: "#7d6608",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // 路径分支 - 头像（id 不用连字符，便于绑定解析）
+      {
+        id: "path_avatar",
+        type: "rectangle",
+        x: 100,
+        y: 1140,
+        width: 140,
+        height: 60,
+        backgroundColor: "#d4edda",
+        strokeColor: "#155724",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 4 },
+        label: {
+          text: "images/avatars/",
+          fontSize: 11,
+          fontFamily: 5,
+          color: "#155724"
+        }
+      },
+
+      // 路径分支 - 帖子
+      {
+        id: "path_post",
+        type: "rectangle",
+        x: 100,
+        y: 1230,
+        width: 140,
+        height: 60,
+        backgroundColor: "#cce5ff",
+        strokeColor: "#004085",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 4 },
+        label: {
+          text: "images/posts/",
+          fontSize: 11,
+          fontFamily: 5,
+          color: "#004085"
+        }
+      },
+
+      // 路径分支 - 评论
+      {
+        id: "path_comment",
+        type: "rectangle",
+        x: 680,
+        y: 1140,
+        width: 140,
+        height: 60,
+        backgroundColor: "#fff3cd",
+        strokeColor: "#856404",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 4 },
+        label: {
+          text: "images/comments/",
+          fontSize: 11,
+          fontFamily: 5,
+          color: "#856404"
+        }
+      },
+
+      // 路径分支 - 回复
+      {
+        id: "path_reply",
+        type: "rectangle",
+        x: 680,
+        y: 1230,
+        width: 140,
+        height: 60,
+        backgroundColor: "#f8d7da",
+        strokeColor: "#721c24",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 4 },
+        label: {
+          text: "images/replies/",
+          fontSize: 11,
+          fontFamily: 5,
+          color: "#721c24"
+        }
+      },
+
+      // 步骤9: 更新图片URL
+      {
+        id: "step9",
+        type: "rectangle",
+        x: 340,
+        y: 1360,
+        width: 240,
+        height: 80,
+        backgroundColor: "#87CEEB",
+        strokeColor: "#1a5276",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "9. 更新图片URL\n替换Berriz CDN为R2",
+          fontSize: 14,
+          fontFamily: 6,
+          color: "#1a5276",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // 步骤10: 保存数据文件
+      {
+        id: "step10",
+        type: "rectangle",
+        x: 340,
+        y: 1490,
+        width: 240,
+        height: 80,
+        backgroundColor: "#87CEEB",
+        strokeColor: "#1a5276",
+        strokeWidth: 2,
+        roundness: { type: 3, value: 8 },
+        label: {
+          text: "10. 保存数据文件\n更新page-1.json",
+          fontSize: 14,
+          fontFamily: 6,
+          color: "#1a5276",
+          textAlign: "center",
+          verticalAlign: "middle"
+        }
+      },
+
+      // 结束节点
+      {
+        id: "end",
+        type: "ellipse",
+        x: 400,
+        y: 1630,
+        width: 120,
+        height: 60,
+        backgroundColor: "#FFB6C1",
+        strokeColor: "#8b4513",
+        strokeWidth: 2,
+        roundness: { type: 2 },
+        label: {
+          text: "结束",
+          fontSize: 16,
+          fontFamily: 6,
+          color: "#8b4513"
+        }
+      },
+    ];
+
+    /** 线段箭头：points 为相对 (x,y) 的两点直线（与形状无绑定，UMD 下最稳） */
+    function segArrow(id, x1, y1, x2, y2, opts) {
+      opts = opts || {};
+      const left = Math.min(x1, x2);
+      const top = Math.min(y1, y2);
+      const w = Math.max(1, Math.abs(x2 - x1));
+      const h = Math.max(1, Math.abs(y2 - y1));
+      const o = {
+        id: id,
+        type: "arrow",
+        x: left,
+        y: top,
+        width: w,
+        height: h,
+        points: [[x1 - left, y1 - top], [x2 - left, y2 - top]],
+        strokeColor: opts.color || "#3a3a3a",
+        strokeWidth: opts.sw != null ? opts.sw : 2,
+        startArrowhead: null,
+        endArrowhead: "arrow"
+      };
+      if (opts.dashed) o.strokeStyle = "dashed";
+      return o;
+    }
+
+    function buildFlowArrows() {
+      const c = "#3a3a3a";
+      const cSkip = "#a93226";
+      const cApi = "#888";
+      return [
+        segArrow("a-start-1", 460, 110, 460, 150, { color: c }),
+        segArrow("a-1-2", 460, 230, 460, 280, { color: c }),
+        segArrow("a-2-3", 460, 360, 460, 410, { color: c }),
+        segArrow("a-3-4", 460, 490, 480, 540, { color: c }),
+        segArrow("a-4-skip", 560, 590, 620, 590, { color: cSkip }),
+        segArrow("a-4-5", 480, 640, 460, 700, { color: c }),
+        segArrow("a-5-6", 460, 770, 460, 820, { color: c }),
+        segArrow("a-6-7", 460, 900, 460, 950, { color: c }),
+        segArrow("a-7-8", 460, 1050, 480, 1120, { color: c }),
+        segArrow("a-8-avatar", 480, 1240, 170, 1140, { color: c }),
+        segArrow("a-8-post", 480, 1240, 170, 1230, { color: c }),
+        segArrow("a-8-comment", 480, 1240, 750, 1140, { color: c }),
+        segArrow("a-8-reply", 480, 1240, 750, 1230, { color: c }),
+        segArrow("a-av-9", 170, 1200, 460, 1360, { color: c }),
+        segArrow("a-po-9", 170, 1290, 460, 1360, { color: c }),
+        segArrow("a-co-9", 750, 1200, 460, 1360, { color: c }),
+        segArrow("a-re-9", 750, 1290, 460, 1360, { color: c }),
+        segArrow("a-9-10", 460, 1440, 460, 1490, { color: c }),
+        segArrow("a-10-end", 460, 1570, 460, 1630, { color: c }),
+        segArrow("c-1-api1", 580, 190, 620, 190, { color: cApi, sw: 1, dashed: true }),
+        segArrow("c-2-api2", 580, 320, 620, 320, { color: cApi, sw: 1, dashed: true }),
+        segArrow("c-3-api3", 580, 450, 620, 450, { color: cApi, sw: 1, dashed: true })
+      ];
+    }
+
+    const flowchartElements = flowchartShapes.concat(buildFlowArrows());
+
+    // Excalidraw 0.17：initialData 只接受「完整元素」，骨架数据必须先 convert（见官方 Skeleton API）
+    function normalizeFlowchartSkeleton(elements) {
+      return elements.map((el) => {
+        const e = { ...el };
+        if (e.label && e.label.color != null && e.label.strokeColor == null) {
+          const { color, ...rest } = e.label;
+          e.label = { ...rest, strokeColor: color };
+        }
+        if (e.strokeStyle === 2) e.strokeStyle = 'dashed';
+        // 椭圆骨架不支持与矩形相同的 roundness，避免 convert 失败
+        if (e.type === 'ellipse' && e.roundness != null) delete e.roundness;
+        // 箭头：必须显式 endArrowhead，否则常显示成「无线段箭头」或看不见箭头尖（0.17 Arrowhead 含 "arrow"|"triangle" 等）
+        if (e.type === 'arrow') {
+          if (e.startArrowhead === undefined) e.startArrowhead = null;
+          if (e.endArrowhead === undefined) e.endArrowhead = 'arrow';
+        }
+        return e;
+      });
+    }
+
+    function buildInitialElements() {
+      const raw = normalizeFlowchartSkeleton(flowchartElements);
+      const lib = typeof ExcalidrawLib !== 'undefined' ? ExcalidrawLib : null;
+      const cvt = lib && (typeof lib.convertToExcalidrawElements === 'function'
+        ? lib.convertToExcalidrawElements
+        : (lib.default && typeof lib.default.convertToExcalidrawElements === 'function'
+          ? lib.default.convertToExcalidrawElements
+          : null));
+      if (typeof cvt !== 'function') {
+        console.error('convertToExcalidrawElements 不可用，请确认已加载 @excalidraw/excalidraw UMD');
+        return [];
+      }
+      try {
+        // 箭头绑定依赖稳定的元素 id，不可让 convert 重新生成 id
+        return cvt(raw, { regenerateIds: false });
+      } catch (err) {
+        console.error('convertToExcalidrawElements 失败:', err);
+        return [];
+      }
+    }
+
+    // 步骤详情信息
+    const stepDetails = {
+      1: {
+        title: "第一步：获取IU回复列表",
+        desc: "调用Berriz API获取IU在From IU板块的回复列表。使用分页参数获取所有回复，只保留boardName为'From. IU'的内容。",
+        api: "GET https://svc-api.berriz.in/service/v2/community/5/artist/48/archive?communityId=5&pageSize=99"
+      },
+      2: {
+        title: "第二步：获取原帖详情",
+        desc: "使用postId获取完整帖子内容，解析POST类型（原帖）和CMT类型（粉丝评论）的数据。",
+        api: "GET https://svc-api.berriz.in/service/v1/community/5/post/{postId}"
+      },
+      3: {
+        title: "第三步：获取评论详情",
+        desc: "粉丝评论的图片不在帖子详情API中，需要单独调用评论详情API获取图片和粉丝头像。",
+        api: "GET https://svc-api.berriz.in/service/v1/comment/comments/{commentSeq}"
+      },
+      4: {
+        title: "第四步：数据去重检查",
+        desc: "读取现有的page-1.json等数据文件，提取所有已存在的post_uuid，对比新获取的帖子UUID，只保留尚未存在的帖子。"
+      },
+      5: {
+        title: "第五步：数据整合",
+        desc: "将新获取的帖子插入到page-1.json的data数组开头（因为新帖子时间最新），并更新total字段。"
+      },
+      6: {
+        title: "第六步：翻译内容",
+        desc: "使用iu-translator技能将所有韩语内容翻译成中文，保持IU的说话风格：亲切、温暖、略带俏皮。"
+      },
+      7: {
+        title: "第七步：下载图片",
+        desc: "创建临时目录/tmp/iu-images/，遍历所有图片URL，使用requests下载图片。包括：头像、帖子图片、评论图片、回复图片。"
+      },
+      8: {
+        title: "第八步：上传图片到R2",
+        desc: "根据图片类型上传到对应的R2路径：\n• 头像: images/avatars/\n• 帖子: images/posts/\n• 评论: images/comments/\n• 回复: images/replies/"
+      },
+      9: {
+        title: "第九步：更新图片URL",
+        desc: "将所有图片URL从Berriz CDN替换为R2域名。例如：https://statics.berriz.in/... → https://dearimage.iu101.org/images/..."
+      },
+      10: {
+        title: "第十步：保存数据文件",
+        desc: "将更新后的数据保存回page-1.json，新帖子插入到data数组开头，更新total字段，确保JSON格式正确。"
+      }
+    };
+
+    let excalidrawAPI = null;
+
+    // 初始化Excalidraw
+    function initExcalidraw() {
+      const container = document.getElementById('excalidraw-container');
+      const initialElements = buildInitialElements();
+      if (!initialElements.length) {
+        container.innerHTML =
+          '<p style="padding:24px;color:#c0392b;font-size:14px;">流程图数据未能生成（convert 失败或依赖未就绪）。请打开浏览器开发者工具查看 Console 报错。</p>';
+        return;
+      }
+
+      const App = () => {
+        return React.createElement(
+          React.Fragment,
+          null,
+          React.createElement(ExcalidrawLib.Excalidraw, {
+            initialData: {
+              elements: initialElements,
+              appState: {
+                viewBackgroundColor: '#fafafa',
+                gridSize: 20,
+                theme: 'light'
+              }
+            },
+            excalidrawAPI: (api) => {
+              excalidrawAPI = api;
+            },
+            onChange: (elements, state) => {
+              // 可以在这里监听变化
+            },
+            onPointerDown: (event, pointer) => {
+              // 点击事件处理
+              handleCanvasClick(event, pointer);
+            },
+            UIOptions: {
+              canvasActions: {
+                changeViewBackgroundColor: true,
+                clearCanvas: false,
+                export: { saveFileToDisk: true },
+                loadScene: false,
+                saveToActiveFile: false,
+                saveAsImage: true,
+                toggleTheme: true
+              }
+            },
+            langCode: 'zh-CN'
+          })
+        );
+      };
+
+      const root = ReactDOM.createRoot(container);
+      root.render(React.createElement(App));
+
+      // 移除loading
+      const loading = container.querySelector('.loading');
+      if (loading) loading.remove();
+    }
+
+    // 处理画布点击
+    function handleCanvasClick(event, pointer) {
+      // 显示信息面板
+      const infoPanel = document.getElementById('infoPanel');
+      // 这里可以根据点击的元素显示不同的信息
+    }
+
+    // 步骤列表点击
+    document.querySelectorAll('.step-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const step = this.dataset.step;
+
+        // 更新活跃状态
+        document.querySelectorAll('.step-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+
+        // 显示详情
+        const detail = stepDetails[step];
+        if (detail) {
+          document.getElementById('infoTitle').textContent = detail.title;
+          document.getElementById('infoDesc').textContent = detail.desc;
+
+          const apiUrlEl = document.getElementById('apiUrl');
+          if (detail.api) {
+            apiUrlEl.textContent = detail.api;
+            apiUrlEl.style.display = 'block';
+          } else {
+            apiUrlEl.style.display = 'none';
+          }
+
+          document.getElementById('infoPanel').classList.add('show');
+        }
+      });
+    });
+
+    // 重置视图
+    function resetView() {
+      if (excalidrawAPI) {
+        excalidrawAPI.scrollToContent();
+      }
+    }
+
+    // 导出图片
+    function exportImage() {
+      if (excalidrawAPI) {
+        excalidrawAPI.exportImage({
+          type: 'png',
+          quality: 1,
+          background: true
+        });
+      }
+    }
+
+    // 页面加载完成后初始化
+    window.addEventListener('load', initExcalidraw);
+  </script>
+</body>
+</html>
