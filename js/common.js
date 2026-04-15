@@ -14,6 +14,7 @@ const translations = {
     totalReplies: '总回帖数',
     totalFans: 'Uaena',
     lastActive: '最后更新时间',
+    timeKstSuffix: '（韩国时间）',
 
     // Controls
     searchPlaceholder: '搜索昵称、内容...',
@@ -56,6 +57,7 @@ const translations = {
     totalReplies: '총 댓글 수',
     totalFans: 'Uaena',
     lastActive: '마지막 업데이트',
+    timeKstSuffix: '(한국 시간 KST)',
 
     // Controls
     searchPlaceholder: '닉네임, 내용 검색...',
@@ -228,9 +230,33 @@ function t(key) {
   return translations[state.currentLang][key] || key;
 }
 
+/** 数据层时间为 UTC；无 Z 的 `YYYY-MM-DD HH:mm:ss` 按 UTC 解析，供排序与韩国时间展示 */
+function parseDataUtc(dateStr) {
+  if (dateStr == null || dateStr === '') return null;
+  const s = String(dateStr).trim();
+  if (!s) return null;
+  if (/[zZ]|[+-]\d{2}:?\d{2}$/.test(s)) {
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/);
+  if (m) {
+    return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
+  }
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) {
+    return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], 0, 0, 0));
+  }
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+const KST_TIMEZONE = 'Asia/Seoul';
+
 function formatDate(dateStr, useRelative = true) {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
+  const date = parseDataUtc(dateStr);
+  if (!date) return '';
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -253,23 +279,32 @@ function formatDate(dateStr, useRelative = true) {
     }
   }
 
-  // Absolute date formatting
-  return date.toLocaleDateString(state.currentLang === 'zh' ? 'zh-CN' : 'ko-KR', {
-    month: 'short',
-    day: 'numeric',
-  });
+  // 绝对日期（韩国时间，带标识）
+  return (
+    date.toLocaleDateString(state.currentLang === 'zh' ? 'zh-CN' : 'ko-KR', {
+      timeZone: KST_TIMEZONE,
+      month: 'short',
+      day: 'numeric',
+    }) + t('timeKstSuffix')
+  );
 }
 
 function formatFullDate(dateStr) {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(state.currentLang === 'zh' ? 'zh-CN' : 'ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const date = parseDataUtc(dateStr);
+  if (!date) return '';
+  const locale = state.currentLang === 'zh' ? 'zh-CN' : 'ko-KR';
+  return (
+    date.toLocaleString(locale, {
+      timeZone: KST_TIMEZONE,
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }) + t('timeKstSuffix')
+  );
 }
 
 function escapeHtml(text) {
@@ -672,7 +707,7 @@ function renderReplyCard(reply, index) {
       `}
       <div class="reply-card-header-info">
         <div class="reply-card-author">${escapeHtml(fanDisplayName)}</div>
-        <div class="reply-card-date">${formatDate(reply.post_time)}</div>
+        <div class="reply-card-date">${formatFullDate(reply.post_time)}</div>
       </div>
     </div>
 
@@ -706,7 +741,7 @@ function renderReplyCard(reply, index) {
               <span class="iu-reply-name">IU</span>
               <span class="iu-reply-badge">✓</span>
               ${reply.fan_username ? `<span class="iu-reply-to">回复 @${escapeHtml(reply.fan_username)}</span>` : ''}
-              <span class="iu-reply-date">${formatDate(reply.replied_at)}</span>
+              <span class="iu-reply-date">${formatFullDate(reply.replied_at)}</span>
             </div>
             <div class="iu-reply-text">${escapeHtml(displayText)}</div>
             ${iuImages.length > 0 ? `
@@ -1160,7 +1195,9 @@ window.IUApp = {
   DataAPI,
   t,
   IU_AVATAR,
+  parseDataUtc,
   formatDate,
+  formatFullDate,
   escapeHtml,
   setLanguage,
   renderHeader,

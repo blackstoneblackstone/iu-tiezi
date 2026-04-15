@@ -450,6 +450,8 @@ body {
 .reply-card-date {
   font-size: 0.8rem;
   color: var(--text-muted);
+  line-height: 1.35;
+  max-width: 100%;
 }
 
 /* Reply Card Body */
@@ -521,8 +523,10 @@ body {
 
 .iu-reply-header-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  row-gap: 4px;
   margin-bottom: 8px;
 }
 
@@ -558,6 +562,9 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
   margin-left: auto;
+  line-height: 1.35;
+  max-width: 100%;
+  text-align: right;
 }
 
 .iu-reply-text {

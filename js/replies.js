@@ -24,6 +24,12 @@ const repliesState = {
   hasMore: true,
 };
 
+function compareRepliedAtDesc(a, b) {
+  const tb = IUApp.parseDataUtc(b.replied_at);
+  const ta = IUApp.parseDataUtc(a.replied_at);
+  return (tb ? tb.getTime() : 0) - (ta ? ta.getTime() : 0);
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
   // Init common functionality
@@ -407,7 +413,7 @@ async function loadAllSearchResults() {
   repliesState.hasMore = repliesState.searchPages.length > 3 || allResults.length >= 50;
 
   // Sort by replied_at descending
-  allResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  allResults.sort(compareRepliedAtDesc);
 
   return allResults.slice(0, 50);
 }
@@ -438,7 +444,7 @@ async function loadSearchResultsPage() {
     }
   }
 
-  newResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  newResults.sort(compareRepliedAtDesc);
   repliesState.hasMore = endPageIndex < repliesState.searchPages.length;
 
   return newResults.slice(0, 50);
@@ -467,7 +473,7 @@ async function loadAllFanFilterResults() {
   repliesState.fanFilterResults = allResults;
   repliesState.hasMore = repliesState.fanFilterPages.length > 3;
 
-  allResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  allResults.sort(compareRepliedAtDesc);
 
   return allResults.slice(0, 50);
 }
@@ -495,7 +501,7 @@ async function loadFanFilterResultsPage() {
     }
   }
 
-  newResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  newResults.sort(compareRepliedAtDesc);
   repliesState.hasMore = endPageIndex < repliesState.fanFilterPages.length;
 
   return newResults.slice(0, 50);
@@ -525,7 +531,7 @@ async function loadAllImageFilterResults() {
   repliesState.imageFilterResults = allResults;
   repliesState.hasMore = repliesState.imageFilterPages.length > 3;
 
-  allResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  allResults.sort(compareRepliedAtDesc);
 
   return allResults.slice(0, 50);
 }
@@ -554,7 +560,7 @@ async function loadImageFilterResultsPage() {
     }
   }
 
-  newResults.sort((a, b) => new Date(b.replied_at) - new Date(a.replied_at));
+  newResults.sort(compareRepliedAtDesc);
   repliesState.hasMore = endPageIndex < repliesState.imageFilterPages.length;
 
   return newResults.slice(0, 50);

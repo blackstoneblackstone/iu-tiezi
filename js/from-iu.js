@@ -207,18 +207,6 @@ function getImages(urls, localPaths) {
   return urls.split(/[,|]/).map(u => u.trim()).filter(Boolean);
 }
 
-function formatFullDate(dateStr) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(IUApp.state.currentLang === 'zh' ? 'zh-CN' : 'ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
 function renderFromIUPostCard(post, index) {
   const div = document.createElement('div');
   div.id = `post-${post.id}`;
@@ -273,7 +261,7 @@ function renderFromIUPostCard(post, index) {
           <span>IU (아이유)</span>
           ${post.board ? `<span class="post-card-board-badge">${post.board}</span>` : ''}
         </div>
-        <div class="post-card-time">${formatFullDate(post.post_time)}</div>
+        <div class="post-card-time">${IUApp.formatFullDate(post.post_time)}</div>
       </div>
     </div>
     ${displayTitle ? `<h3 class="post-card-title">${IUApp.escapeHtml(displayTitle)}</h3>` : ''}
@@ -332,7 +320,7 @@ function renderFromIUPostCard(post, index) {
           </div>
           <div>
             <div class="comment-card-author">${IUApp.escapeHtml(comment.fan_username || '')}</div>
-            <div class="comment-card-time">${formatFullDate(comment.commented_at)}</div>
+            <div class="comment-card-time">${IUApp.formatFullDate(comment.commented_at)}</div>
           </div>
         </div>
         <div class="comment-card-content">${IUApp.escapeHtml(commentDisplayContent || '')}</div>
@@ -382,7 +370,7 @@ function renderFromIUPostCard(post, index) {
                     <span class="reply-label">${IUApp.state.currentLang === 'zh' ? '回复' : '답글'}</span>
                     <span class="reply-target">@${IUApp.escapeHtml(comment.fan_username || '')}</span>
                   </div>
-                  <div class="iu-comment-reply-time">${formatFullDate(reply.replied_at)}</div>
+                  <div class="iu-comment-reply-time">${IUApp.formatFullDate(reply.replied_at)}</div>
                 </div>
               </div>
               <div class="iu-comment-reply-content">${IUApp.escapeHtml(replyDisplayContent || '')}</div>
