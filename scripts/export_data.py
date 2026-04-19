@@ -12,6 +12,27 @@ DB_PATH = 'data/iu_data.db'
 DATA_DIR = 'data'
 IMAGE_DOMAIN = 'https://dearimage.iu101.org'
 
+# 统一的 IU 头像文件名（所有数字命名的 IU 头像都使用这个统一名称）
+UNIFIED_IU_AVATAR = 'iu-avatar.jpg'
+
+# 数字命名的 IU 头像文件名列表（这些实际上是同一张头像）
+IU_AVATAR_ALIASES = [
+    '14972286.jpg',
+    '1383106141.jpeg',
+    '1771524890.jpeg',
+    '80296812.jpg',
+    '900785573.jpg',
+]
+
+def normalize_iu_avatar(url):
+    """将数字命名的 IU 头像 URL 统一为标准名称"""
+    if not url:
+        return url
+    for alias in IU_AVATAR_ALIASES:
+        if alias in url:
+            return f"{IMAGE_DOMAIN}/images/{UNIFIED_IU_AVATAR}"
+    return url
+
 def add_domain_to_url(url):
     """为相对路径的图片 URL 添加域名"""
     if not url:
@@ -91,8 +112,8 @@ def export_fans():
     for row in cursor.fetchall():
         fans.append({
             "username": row['username'],
-            "avatar_url": add_domain_to_url(row['avatar_url']),
-            "local_avatar_path": add_domain_to_url(row['local_avatar_path']),
+            "avatar_url": normalize_iu_avatar(add_domain_to_url(row['avatar_url'])),
+            "local_avatar_path": normalize_iu_avatar(add_domain_to_url(row['local_avatar_path'])),
             "reply_count": row['reply_count']
         })
 
@@ -170,8 +191,8 @@ def export_replies():
             "fan_image_urls": process_image_urls(row['fan_image_urls']),
             "fan_local_image_paths": process_image_urls(row['fan_local_image_paths']),
             "fan_username": row['fan_username'],
-            "fan_avatar": add_domain_to_url(row['fan_avatar']),
-            "fan_local_avatar": add_domain_to_url(row['fan_local_avatar'])
+            "fan_avatar": normalize_iu_avatar(add_domain_to_url(row['fan_avatar'])),
+            "fan_local_avatar": normalize_iu_avatar(add_domain_to_url(row['fan_local_avatar']))
         }
         replies.append(reply)
 
@@ -264,8 +285,8 @@ def export_board_posts(board_name, folder_name):
             "board": row['board'],
             "members_only": row['members_only'],
             "author_username": row['author_username'],
-            "author_avatar": add_domain_to_url(row['author_avatar']),
-            "author_local_avatar": add_domain_to_url(row['author_local_avatar']),
+            "author_avatar": normalize_iu_avatar(add_domain_to_url(row['author_avatar'])),
+            "author_local_avatar": normalize_iu_avatar(add_domain_to_url(row['author_local_avatar'])),
             "fan_comments": [],
             "direct_iu_replies": []
         }
@@ -299,8 +320,8 @@ def export_board_posts(board_name, folder_name):
                 "local_image_paths": process_image_urls(c_row['local_image_paths']),
                 "commented_at": c_row['commented_at'],
                 "fan_username": c_row['fan_username'],
-                "fan_avatar": add_domain_to_url(c_row['fan_avatar']),
-                "fan_local_avatar": add_domain_to_url(c_row['fan_local_avatar']),
+                "fan_avatar": normalize_iu_avatar(add_domain_to_url(c_row['fan_avatar'])),
+                "fan_local_avatar": normalize_iu_avatar(add_domain_to_url(c_row['fan_local_avatar'])),
                 "iu_replies": []
             }
 
