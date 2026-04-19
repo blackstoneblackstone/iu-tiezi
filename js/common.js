@@ -293,18 +293,17 @@ function formatFullDate(dateStr) {
   if (!dateStr) return '';
   const date = parseDataUtc(dateStr);
   if (!date) return '';
-  const locale = state.currentLang === 'zh' ? 'zh-CN' : 'ko-KR';
-  return (
-    date.toLocaleString(locale, {
-      timeZone: KST_TIMEZONE,
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }) + t('timeKstSuffix')
-  );
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: KST_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${value.year}/${value.month}/${value.day} ${value.hour}:${value.minute}${t('timeKstSuffix')}`;
 }
 
 function escapeHtml(text) {

@@ -1,5 +1,13 @@
 /* IU Community - Clean & Readable Dark Mode UI */
 
+@font-face {
+  font-family: 'TsangerJinKai02-W04';
+  src:
+    url('TsangerJinKai02-W04.woff2') format('woff2'),
+    url('TsangerJinKai02-W04.ttf') format('truetype');
+  font-display: swap;
+}
+
 /* ===== CSS Variables ===== */
 :root {
   --primary: #9779ea;
@@ -38,7 +46,7 @@ body {
     radial-gradient(ellipse at top left, rgba(151, 126, 234, 0.06) 0%, transparent 50%),
     radial-gradient(ellipse at bottom right, rgba(123, 93, 196, 0.04) 0%, transparent 50%);
   color: var(--text-primary);
-  font-family: 'Noto Sans SC', 'Noto Sans KR', -apple-system, sans-serif;
+  font-family: 'TsangerJinKai02-W04', 'Noto Sans SC', 'Noto Sans KR', -apple-system, sans-serif;
   min-height: 100vh;
   line-height: 1.6;
   overflow-x: hidden;
