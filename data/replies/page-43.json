@@ -1,0 +1,35 @@
+{
+  "page": 43,
+  "totalPages": 43,
+  "total": 2101,
+  "data": [
+    {
+      "id": -1069,
+      "reply_uuid": "0196cee6-bd6f-46ef-aa32-7fa1fcd5809f",
+      "content_ko": "아무튼 무슨 챌린지",
+      "content_zh": "总之是什么挑战",
+      "replied_at": "2025-05-14 13:05:50",
+      "board": "From. IU",
+      "image_count": 1,
+      "image_urls": "https://dearimage.iu101.org/images/posts/post_1069_1440771977.jpeg",
+      "iu_local_image_paths": "https://dearimage.iu101.org/images/posts/post_1069_1440771977.jpeg",
+      "is_reply_to_comment": 0,
+      "reply_to_username": null,
+      "post_id": 1069,
+      "post_title_ko": null,
+      "post_title_zh": null,
+      "post_time": "2025-05-14 13:05:50",
+      "post_image_count": 1,
+      "post_image_urls": "https://dearimage.iu101.org/images/posts/post_1069_1440771977.jpeg",
+      "post_local_image_paths": "https://dearimage.iu101.org/images/posts/post_1069_1440771977.jpeg",
+      "fan_comment_ko": null,
+      "fan_comment_zh": null,
+      "fan_image_count": null,
+      "fan_image_urls": null,
+      "fan_local_image_paths": null,
+      "fan_username": null,
+      "fan_avatar": null,
+      "fan_local_avatar": null
+    }
+  ]
+}
