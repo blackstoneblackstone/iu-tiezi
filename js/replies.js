@@ -24,6 +24,11 @@ const repliesState = {
   hasMore: true,
 };
 
+function applyRevealAnimation(item, order = 0) {
+  item.classList.add('reveal-in');
+  item.style.setProperty('--stagger', `${Math.min(order, 14) * 22}ms`);
+}
+
 function compareRepliedAtDesc(a, b) {
   const tb = IUApp.parseDataUtc(b.replied_at);
   const ta = IUApp.parseDataUtc(a.replied_at);
@@ -274,6 +279,7 @@ function appendReplies(newReplies) {
   newReplies.forEach((reply, i) => {
     const item = document.createElement('div');
     item.className = 'masonry-item';
+    applyRevealAnimation(item, i);
     item.appendChild(IUApp.renderReplyCard(reply, startIndex + i));
     grid.appendChild(item);
   });
@@ -288,6 +294,7 @@ async function loadReplies() {
 
   // Show skeleton loading
   repliesState.isLoading = true;
+  contentContainer.classList.add('is-busy');
   contentContainer.innerHTML = '';
   contentContainer.appendChild(IUApp.renderSkeletonCards(6));
 
@@ -328,6 +335,7 @@ async function loadReplies() {
       data.forEach((reply, index) => {
         const item = document.createElement('div');
         item.className = 'masonry-item';
+        applyRevealAnimation(item, index);
         item.appendChild(IUApp.renderReplyCard(reply, index));
         grid.appendChild(item);
       });
@@ -340,6 +348,7 @@ async function loadReplies() {
     contentContainer.innerHTML = `<div class="empty-state"><p>Error loading data</p></div>`;
   } finally {
     repliesState.isLoading = false;
+    contentContainer.classList.remove('is-busy');
   }
 }
 

@@ -1161,6 +1161,28 @@ body {
   to { opacity: 1; }
 }
 
+#content-container {
+  transition: opacity 180ms ease;
+}
+
+#content-container.is-busy {
+  opacity: 0.82;
+}
+
+.reveal-in {
+  opacity: 0;
+  transform: translateY(10px) scale(0.995);
+  animation: cardReveal 420ms cubic-bezier(.22,.61,.36,1) forwards;
+  animation-delay: var(--stagger, 0ms);
+}
+
+@keyframes cardReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* ===== Skeleton Loading ===== */
 .skeleton {
   background: linear-gradient(90deg, var(--bg-dark) 25%, rgba(151, 126, 234, 0.08) 50%, var(--bg-dark) 75%);
@@ -1179,6 +1201,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   padding: 14px 16px;
+  overflow: hidden;
 }
 
 .skeleton-header {
@@ -1622,4 +1645,199 @@ body {
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* ===== 2026-04 Frontend Polish Overrides ===== */
+:root {
+  --font-display: 'TsangerJinKai02-W04', 'Noto Sans SC', 'Noto Sans KR', -apple-system, sans-serif;
+  --font-body: 'TsangerJinKai02-W04', 'Noto Sans SC', 'Noto Sans KR', -apple-system, sans-serif;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: clamp(14px, 0.78vw, 16px);
+  line-height: 1.62;
+  letter-spacing: 0;
+}
+
+.container {
+  max-width: 1260px;
+  padding-inline: clamp(14px, 2.5vw, 28px);
+}
+
+.logo-text,
+.post-card-title,
+.iu-reply-name,
+.reply-card-author {
+  font-family: var(--font-display);
+}
+
+.logo-text {
+  font-size: clamp(1.2rem, 1.3vw, 1.58rem);
+}
+
+.header {
+  background: color-mix(in oklab, var(--bg-oled) 86%, var(--primary) 14%);
+  border-bottom-color: rgba(151, 126, 234, 0.2);
+  padding-block: clamp(10px, 1vw, 14px);
+}
+
+.stats-bar {
+  padding-block: clamp(10px, 0.9vw, 14px);
+}
+
+.stat-item {
+  font-size: clamp(0.82rem, 0.8vw, 0.92rem);
+}
+
+.stat-value {
+  font-size: clamp(1rem, 1vw, 1.18rem);
+}
+
+.nav-tabs {
+  justify-content: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding-inline: clamp(2px, 0.4vw, 8px);
+  scrollbar-width: none;
+}
+
+.nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-tab {
+  border-radius: 999px;
+  padding: 9px 17px;
+  white-space: nowrap;
+  background: color-mix(in oklab, var(--bg-card) 82%, var(--primary) 18%);
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-box {
+  max-width: none;
+}
+
+.search-box input {
+  min-height: 42px;
+  border-radius: 12px;
+}
+
+.filter-group {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.filter-btn {
+  min-height: 40px;
+  border-radius: 12px;
+  padding-inline: 16px;
+}
+
+.masonry-grid {
+  column-gap: clamp(12px, 1.5vw, 22px);
+}
+
+.masonry-item {
+  margin-bottom: clamp(12px, 1.5vw, 22px);
+}
+
+.reply-card,
+.post-card {
+  border-radius: var(--radius-lg);
+  border-color: rgba(151, 126, 234, 0.2);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.26);
+}
+
+.reply-card-header,
+.post-card-header {
+  padding: 15px 16px;
+  background: color-mix(in oklab, var(--bg-card) 90%, var(--primary) 10%);
+}
+
+.reply-card-body,
+.post-card-comments {
+  padding: 15px 16px;
+}
+
+.reply-card-date,
+.post-card-time,
+.iu-reply-date {
+  font-size: 0.78rem;
+}
+
+.fan-comment-box {
+  border-left-width: 2px;
+  border-radius: var(--radius-md);
+  padding: 11px 13px;
+}
+
+.fan-comment-text,
+.iu-reply-text,
+.post-card-content,
+.comment-card-content {
+  font-size: clamp(0.88rem, 0.88vw, 0.98rem);
+  line-height: 1.58;
+}
+
+.iu-reply-bubble {
+  background: color-mix(in oklab, var(--primary) 14%, var(--bg-card) 86%);
+  border-color: rgba(151, 126, 234, 0.22);
+  border-radius: 14px 14px 14px 6px;
+}
+
+.post-card-board-badge {
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.footer {
+  margin-top: clamp(30px, 4vw, 56px);
+}
+
+@media (max-width: 900px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-group {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .nav-tabs {
+    justify-content: flex-start;
+  }
+
+  .header {
+    position: static;
+  }
+
+  .stats-content {
+    gap: 16px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .stats-content::-webkit-scrollbar {
+    display: none;
+  }
+
+  .reply-card,
+  .post-card {
+    border-radius: var(--radius-md);
+  }
 }
