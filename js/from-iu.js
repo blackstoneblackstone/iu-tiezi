@@ -200,11 +200,24 @@ function togglePost(postId) {
 }
 
 function getImages(urls, localPaths) {
-  if (localPaths && localPaths.trim()) {
-    return localPaths.split(/[,|]/).map(p => p.trim()).filter(Boolean);
+  // Handle localPaths: could be string, array, or null/undefined
+  if (localPaths) {
+    if (Array.isArray(localPaths)) {
+      return localPaths.map(p => String(p).trim()).filter(Boolean);
+    }
+    if (typeof localPaths === 'string' && localPaths.trim()) {
+      return localPaths.split(/[,|]/).map(p => p.trim()).filter(Boolean);
+    }
   }
+  // Handle urls: could be string, array, or null/undefined
   if (!urls) return [];
-  return urls.split(/[,|]/).map(u => u.trim()).filter(Boolean);
+  if (Array.isArray(urls)) {
+    return urls.map(u => String(u).trim()).filter(Boolean);
+  }
+  if (typeof urls === 'string') {
+    return urls.split(/[,|]/).map(u => u.trim()).filter(Boolean);
+  }
+  return [];
 }
 
 function renderFromIUPostCard(post, index) {
