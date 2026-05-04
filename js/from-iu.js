@@ -414,6 +414,12 @@ function renderFromIUPostCard(post, index) {
     });
 
     commentsDiv.appendChild(commentsList);
+  } else if (isExpanded && (!post.fan_comments || post.fan_comments.length === 0)) {
+    // No comments - show "IU has not replied" message
+    const emptyDiv = document.createElement('div');
+    emptyDiv.style.cssText = 'margin-top: 16px; padding: 16px; text-align: center; color: var(--text-muted, #8b8b9e); font-size: 13px;';
+    emptyDiv.textContent = IUApp.state.currentLang === 'zh' ? 'IU 没有回复' : 'IU 답글 없음';
+    commentsDiv.appendChild(emptyDiv);
   }
 
   div.appendChild(commentsDiv);
