@@ -300,9 +300,16 @@ function renderFromIUPostCard(post, index) {
     const interpDiv = document.createElement('div');
     interpDiv.className = 'post-interpretation';
 
-    const interpTitle = post.interpretation_zh.title || '帖子解读';
+    const interpTitle = post.interpretation_zh.title || '帖子看点';
     const points = post.interpretation_zh.points || [];
 
+    // Build tags HTML for collapsed state
+    let tagsHtml = '';
+    points.forEach(point => {
+      tagsHtml += `<span class="interpretation-tag">${point.label}</span>`;
+    });
+
+    // Build points HTML for expanded state
     let pointsHtml = '';
     points.forEach(point => {
       pointsHtml += `
@@ -315,10 +322,13 @@ function renderFromIUPostCard(post, index) {
 
     interpDiv.innerHTML = `
       <div class="interpretation-header">
-        <span class="interpretation-title">💡 ${interpTitle}</span>
+        <span class="interpretation-title">${interpTitle}</span>
         <button class="interpretation-toggle-btn" data-post-id="${post.id}" title="收起/展开">
           <span class="toggle-icon expanded">▲</span>
         </button>
+      </div>
+      <div class="interpretation-tags">
+        ${tagsHtml}
       </div>
       <div class="interpretation-content expanded">
         <div class="interpretation-inner">
@@ -332,22 +342,30 @@ function renderFromIUPostCard(post, index) {
     // Bind toggle event
     const toggleBtn = interpDiv.querySelector('.interpretation-toggle-btn');
     const contentDiv = interpDiv.querySelector('.interpretation-content');
+    const tagsDiv = interpDiv.querySelector('.interpretation-tags');
     const icon = toggleBtn.querySelector('.toggle-icon');
 
-    toggleBtn.addEventListener('click', () => {
+    function toggleInterpretation() {
       const isExpanded = contentDiv.classList.contains('expanded');
       if (isExpanded) {
         contentDiv.classList.remove('expanded');
         contentDiv.classList.add('collapsed');
+        tagsDiv.style.display = 'flex';
         icon.classList.remove('expanded');
         icon.textContent = '▼';
       } else {
         contentDiv.classList.remove('collapsed');
         contentDiv.classList.add('expanded');
+        tagsDiv.style.display = 'none';
         icon.classList.add('expanded');
         icon.textContent = '▲';
       }
-    });
+    }
+
+    toggleBtn.addEventListener('click', toggleInterpretation);
+
+    // Tags are also clickable to expand
+    tagsDiv.addEventListener('click', toggleInterpretation);
   }
 
   // Comments section
