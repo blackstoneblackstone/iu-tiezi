@@ -314,13 +314,14 @@ function renderFromIUPostCard(post, index) {
     });
 
     interpDiv.innerHTML = `
-      <button class="interpretation-toggle-btn" data-post-id="${post.id}">
-        <span>💡 ${interpTitle}</span>
-        <span class="toggle-icon">▼</span>
-      </button>
-      <div class="interpretation-content">
+      <div class="interpretation-header">
+        <span class="interpretation-title">💡 ${interpTitle}</span>
+        <button class="interpretation-toggle-btn" data-post-id="${post.id}" title="收起/展开">
+          <span class="toggle-icon expanded">▲</span>
+        </button>
+      </div>
+      <div class="interpretation-content expanded">
         <div class="interpretation-inner">
-          <h4>📝 ${interpTitle}</h4>
           ${pointsHtml}
         </div>
       </div>
@@ -331,15 +332,21 @@ function renderFromIUPostCard(post, index) {
     // Bind toggle event
     const toggleBtn = interpDiv.querySelector('.interpretation-toggle-btn');
     const contentDiv = interpDiv.querySelector('.interpretation-content');
+    const icon = toggleBtn.querySelector('.toggle-icon');
 
     toggleBtn.addEventListener('click', () => {
-      contentDiv.classList.toggle('show');
-      const icon = toggleBtn.querySelector('.toggle-icon');
-      icon.classList.toggle('expanded');
-      const labelSpan = toggleBtn.querySelector('span:first-child');
-      labelSpan.textContent = contentDiv.classList.contains('show')
-        ? `💡 收起${interpTitle}`
-        : `💡 ${interpTitle}`;
+      const isExpanded = contentDiv.classList.contains('expanded');
+      if (isExpanded) {
+        contentDiv.classList.remove('expanded');
+        contentDiv.classList.add('collapsed');
+        icon.classList.remove('expanded');
+        icon.textContent = '▼';
+      } else {
+        contentDiv.classList.remove('collapsed');
+        contentDiv.classList.add('expanded');
+        icon.classList.add('expanded');
+        icon.textContent = '▲';
+      }
     });
   }
 
