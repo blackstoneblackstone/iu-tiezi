@@ -295,6 +295,54 @@ function renderFromIUPostCard(post, index) {
 
   div.appendChild(headerDiv);
 
+  // Interpretation section (only for IU posts with interpretation data in Chinese mode)
+  if (post.interpretation_zh && IUApp.state.currentLang === 'zh') {
+    const interpDiv = document.createElement('div');
+    interpDiv.className = 'post-interpretation';
+
+    const interpTitle = post.interpretation_zh.title || '帖子解读';
+    const points = post.interpretation_zh.points || [];
+
+    let pointsHtml = '';
+    points.forEach(point => {
+      pointsHtml += `
+        <div class="interpretation-point">
+          <div class="label">${point.label}</div>
+          <div class="text">${point.text}</div>
+        </div>
+      `;
+    });
+
+    interpDiv.innerHTML = `
+      <button class="interpretation-toggle-btn" data-post-id="${post.id}">
+        <span>💡 ${interpTitle}</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="interpretation-content">
+        <div class="interpretation-inner">
+          <h4>📝 ${interpTitle}</h4>
+          ${pointsHtml}
+        </div>
+      </div>
+    `;
+
+    div.appendChild(interpDiv);
+
+    // Bind toggle event
+    const toggleBtn = interpDiv.querySelector('.interpretation-toggle-btn');
+    const contentDiv = interpDiv.querySelector('.interpretation-content');
+
+    toggleBtn.addEventListener('click', () => {
+      contentDiv.classList.toggle('show');
+      const icon = toggleBtn.querySelector('.toggle-icon');
+      icon.classList.toggle('expanded');
+      const labelSpan = toggleBtn.querySelector('span:first-child');
+      labelSpan.textContent = contentDiv.classList.contains('show')
+        ? `💡 收起${interpTitle}`
+        : `💡 ${interpTitle}`;
+    });
+  }
+
   // Comments section
   const commentsDiv = document.createElement('div');
   commentsDiv.className = 'post-card-comments';

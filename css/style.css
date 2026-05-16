@@ -1841,3 +1841,101 @@ body {
     border-radius: var(--radius-md);
   }
 }
+
+/* ===== Post Interpretation Section ===== */
+.post-interpretation {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.interpretation-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 20px;
+  color: #f59e0b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.interpretation-toggle-btn:hover {
+  background: rgba(245, 158, 11, 0.18);
+}
+
+.interpretation-toggle-btn .toggle-icon {
+  font-size: 11px;
+  transition: transform 0.2s;
+}
+
+.interpretation-toggle-btn .toggle-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.interpretation-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.interpretation-content.show {
+  max-height: 1000px;
+}
+
+.interpretation-inner {
+  margin-top: 14px;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.interpretation-inner h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f59e0b;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.interpretation-point {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.1);
+}
+
+.interpretation-point:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.interpretation-point .label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f59e0b;
+  margin-bottom: 4px;
+}
+
+.interpretation-point .text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.interpretation-point .text code {
+  background: rgba(245, 158, 11, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-size: 13px;
+  color: var(--text-primary);
+}
