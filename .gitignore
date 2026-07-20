@@ -6,3 +6,8 @@ __pycache__/
 *$py.class
 intro/
 .wrangler/
+
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
