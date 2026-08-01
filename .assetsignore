@@ -1,0 +1,4 @@
+.wrangler/
+work/
+*.mp4
+check_posts.py
