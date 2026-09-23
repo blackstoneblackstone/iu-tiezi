@@ -1,4 +1,12 @@
+.git/
 .wrangler/
 work/
+intro/
+.DS_Store
+__pycache__/
+*.py[cod]
+*$py.class
+.dev.vars*
+.env*
 *.mp4
 check_posts.py
