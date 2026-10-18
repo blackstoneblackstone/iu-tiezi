@@ -1085,7 +1085,7 @@ for post in new_posts:
 
 - **wrangler**: Cloudflare CLI 工具，用于上传图片到 R2
   ```bash
-  npm install -g wrangler
+  pnpm add -g wrangler
   wrangler login
   ```
 
