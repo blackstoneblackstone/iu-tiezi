@@ -1,6 +1,6 @@
 # from-iu-tiezi
 
-用于整理 Berriz 上 IU 的 From. IU 帖子及回复：抓取原始数据、翻译为中文、迁移图片，并更新网站使用的 JSON。完整操作规范见 [SKILL.md](SKILL.md)。
+用于同步 Berriz 上 IU 在 **From. IU、Dear. IU、Free** 三个板块的帖子与回复：抓取原始数据、翻译中文、迁移图片、核对问答关系，并更新网站 JSON。完整操作规范见 [SKILL.md](SKILL.md)。
 
 ## 安装
 
@@ -14,7 +14,7 @@ git clone git@github.com:blackstoneblackstone/iu-tiezi.git ~/.codex/skills/from-
 
 ## 更新时必须核对
 
-IU 回复与粉丝评论只通过 Berriz 的 `parentCommentSeq` 建立父子关系，不能按列表位置或时间顺序配对。每批更新需保留原始快照，逐条核对韩语原文、中文翻译和问答语义，并运行项目中的完整性检查；部署后还需在正式页面展开评论抽查。具体步骤和命令以 [SKILL.md](SKILL.md) 及网站项目的 `AGENTS.md` 为准。
+评论内的 IU 回复只通过 Berriz 的 `parentCommentSeq` 建立父子关系，不能按列表位置或时间顺序配对。三个板块每批更新都需保留原始快照，逐条核对韩语原帖或评论、中文翻译、IU 韩语回复和中文翻译，并运行项目中的完整性检查；部署后还需在正式页面展开评论抽查。具体步骤和命令以 [SKILL.md](SKILL.md) 及网站项目的 `AGENTS.md` 为准。
 
 ## 网站源码
 
